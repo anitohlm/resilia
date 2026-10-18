@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Cloud | H2S — AI Builder Cup Submission | RESILIA Pitch Deck</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --bg: #09090b;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --sky: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Toolbar */
+    header.deck-header {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0284c7, #10b981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #334155;
+      color: white;
+    }
+
+    .btn-primary {
+      background: #059669;
+      border-color: #10b981;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #10b981;
+    }
+
+    .btn-accent {
+      background: #d97706;
+      border-color: #f59e0b;
+      color: white;
+    }
+    .btn-accent:hover {
+      background: #f59e0b;
+    }
+
+    /* Main Deck Stage */
+    main.deck-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .viewport {
+      width: 100%;
+      max-width: 1120px;
+      aspect-ratio: 16 / 9;
+      background: #09090b;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 40px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      transform: scale(0.98);
+      background: radial-gradient(circle at top right, rgba(2, 132, 199, 0.08), transparent 40%),
+                  radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.08), transparent 40%),
+                  #09090b;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      z-index: 10;
+    }
+
+    
+    /* Official AI Builder Cup Template Assets */
+    .official-template-title-banner {
+      width: 100%;
+      max-height: 120px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+    }
+    .official-banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .official-template-header-banner {
+      width: 100%;
+      height: 38px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      background: #000;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+    }
+    .official-header-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: left center;
+    }
+    .official-template-thankyou-banner {
+      width: 100%;
+      max-height: 140px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+    }
+    .official-thankyou-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .official-footer-strip {
+      width: 100%;
+      height: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+      border-radius: 2px;
+      background: #1e293b;
+    }
+    .footer-strip-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .footer-meta {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    /* Official Template Header Banners */
+    .template-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .template-banner-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .banner-blue {
+      background: rgba(2, 132, 199, 0.2);
+      border: 1px solid #0284c7;
+      color: #38bdf8;
+    }
+    .banner-emerald {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 18px;
+    }
+
+    .slide-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+      line-height: 1.2;
+    }
+
+    .slide-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Slide Body Grid Layouts */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    .col-left {
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .col-right {
+      flex: 0.9;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .card.border-primary { border-color: rgba(16, 185, 129, 0.4); }
+    .card.border-accent { border-color: rgba(245, 158, 11, 0.4); }
+    .card.border-sky { border-color: rgba(56, 189, 248, 0.4); }
+    .card.border-danger { border-color: rgba(239, 68, 68, 0.4); }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-text {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feature-item {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feature-item::before {
+      content: "•";
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    /* Stat Box */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-box {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 4px;
+      font-family: monospace;
+    }
+    .stat-number.text-accent { color: #fbbf24; }
+    .stat-number.text-sky { color: #38bdf8; }
+    .stat-number.text-danger { color: #f87171; }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 2px;
+    }
+    .stat-subtext {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    /* Photo Containers */
+    .slide-photo-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .slide-photo-card img {
+      width: 100%;
+      height: 100%;
+      max-height: 270px;
+      object-fit: cover;
+      display: block;
+    }
+    .slide-photo-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(6px);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 2;
+    }
+    .slide-photo-caption {
+      padding: 8px 12px;
+      background: #0f172a;
+      font-size: 11px;
+      color: var(--text-muted);
+      border-top: 1px solid #1e293b;
+      line-height: 1.4;
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #1e293b;
+      padding-top: 10px;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 12px;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      font-family: monospace;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-notes-panel {
+      width: 100%;
+      max-width: 1120px;
+      margin-top: 14px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: none;
+    }
+
+    .speaker-notes-panel.open {
+      display: block;
+    }
+
+    .speaker-notes-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .speaker-notes-content {
+      font-size: 14px;
+      color: #e2e8f0;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* Print / PDF CSS */
+    @media print {
+      @page {
+        size: 16in 9in landscape;
+        margin: 0;
+      }
+      html, body {
+        background: #09090b !important;
+        color: #f8fafc !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      header.deck-header, .controls-bar, .speaker-notes-panel {
+        display: none !important;
+      }
+      main.deck-stage {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+      .viewport {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: auto !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        aspect-ratio: auto !important;
+        display: block !important;
+        overflow: visible !important;
+      }
+      .slide {
+        position: relative !important;
+        inset: auto !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        max-height: 100vh !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        box-sizing: border-box !important;
+        padding: 30px 40px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Toolbar -->
+  <header class="deck-header">
+    <div class="brand">
+      <div class="brand-icon">R</div>
+      <div>
+        <div class="brand-title">RESILIA — Pitch Deck</div>
+      </div>
+      <span class="brand-badge">Google Cloud | AI Builder Cup</span>
+    </div>
+    <div class="toolbar-actions">
+      <a href="/Resilia_Competition_Pitch_Deck.pptx" class="btn btn-primary" download>
+        <span>📥</span> Download Official PPTX
+      </a>
+      <a href="/resilia_demo_video.mp4" class="btn btn-accent" target="_blank">
+        🎬 Watch 3-Min Demo Video (MP4)
+      </a>
+      <a href="/" class="btn">
+        <span>🏠</span> Back to Live App
+      </a>
+      <button class="btn" onclick="window.print()">
+        <span>🖨️</span> Print / Save PDF
+      </button>
+      <button class="btn" onclick="toggleFullscreen()">
+        <span>⛶</span> Present
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Presentation Stage -->
+  <main class="deck-stage">
+    <div class="viewport" id="viewport">
+
+      <!-- SLIDE 1: Title / Cover & Team Details -->
+      <section class="slide active" id="slide-1" data-notes="Disasters don't wait for good Wi-Fi. In the first 72 hours of a typhoon or flood, cellular infrastructure often fails and power grids go dark. Resilia is an AI-assisted community disaster coordination platform designed to keep vital lifelines open even under severe network disruptions. We are proud to submit Resilia to the Google Cloud AI Builder Cup.">
+        <div>
+          <div class="official-template-title-banner">
+            <img src="/images/ai_builder_cup_title_banner.png" alt="Google Cloud | H2S AI Builder Cup Title Banner" class="official-banner-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">AI Builder Cup Submission | Team Details</div>
+            <h1 class="slide-title">Team Details</h1>
+            <p class="slide-subtitle">Resilia — Resilient Community Disaster Coordination Platform ("Maintaining vital lifelines when networks fail.")</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-sky">
+              <h3 class="card-title text-sky">Submission Team Details</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>Team Details:</strong> Resilia Disaster Resilience Team</li>
+                <li class="feature-item"><strong>Team name:</strong> Resilia Resilience Team</li>
+                <li class="feature-item"><strong>Team leader name:</strong> Resilia Engineering Lead</li>
+                <li class="feature-item"><strong>Problem Statement:</strong> AI for Disaster Risk Reduction & Resilient Communities (UN SDG 11 & SDG 13)</li>
+                <li class="feature-item"><strong>Target Alignment:</strong> Marikina River Basin community flood resilience & hybrid edge coordination</li>
+              </ul>
+            </div>
+
+            <div class="card border-accent">
+              <h3 class="card-title text-accent">Official Template Instructions</h3>
+              <p class="card-text" style="margin-bottom: 6px;"><strong>Note:</strong> Please download this template to make your edits and submit the final version. To download, go to File &gt; Download &gt; Microsoft PowerPoint (.PPTX). Kindly refrain from sending edit requests.</p>
+              <p class="card-text"><strong>Evaluation Scope:</strong> Functional working prototype evaluated on simulated Marikina River Basin scenarios (193+ automated assertions passed).</p>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="slide-photo-card" style="border-color: rgba(16, 185, 129, 0.4);">
+              <span class="slide-photo-badge" style="color: #34d399;">PROTOTYPE ON SMARTPHONE</span>
+              <img src="/images/resilia_app_cellphone.jpg" alt="Resilia App on Cellphone">
+              <div class="slide-photo-caption">Resilia Mobile App running locally with instant incident reporting and offline-resilient IndexedDB storage.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 1 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: Brief about the idea -->
+      <section class="slide" id="slide-2" data-notes="Every modern disaster management tool makes one fatal assumption: that the internet will work. But in climate-vulnerable regions across JAPAC, cell towers drown and power lines snap. Resilia bridges this gap with a hybrid architecture: leveraging Google Gemini 3.8 Flash in the cloud for deep situational intelligence, while executing deterministic algorithms locally on edge devices so life-saving coordination never stops.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Executive Summary</div>
+            <h1 class="slide-title">Brief about the idea</h1>
+            <p class="slide-subtitle">AI-Assisted Community Disaster Coordination Operating Under Severe Network Degradation</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-danger">
+              <h3 class="card-title" style="color: #f87171;">The 72-Hour Blackout Crisis</h3>
+              <p class="card-text">Category 4/5 typhoons drown cell towers and submerge power substations. When the internet dies, traditional cloud apps display blank loading spinners, leaving isolated families on rooftops unable to call for help.</p>
+            </div>
+
+            <div class="card border-primary">
+              <h3 class="card-title text-primary">Hybrid Dual-Engine Solution</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>Online Cloud Mode:</strong> Google Gemini 3.8 Flash synthesizes multi-incident reports and translates Tagalog/English.</li>
+                <li class="feature-item"><strong>Offline Edge Fallback:</strong> 15 client IndexedDB stores and deterministic rules execute locally without cloud round-trip delay.</li>
+                <li class="feature-item"><strong>Human Gatekeeper:</strong> Strict anti-hallucination evidence citations; rescue dispatches require human coordinator sign-off.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="slide-photo-card" style="border-color: rgba(2, 132, 199, 0.4);">
+              <span class="slide-photo-badge" style="color: #38bdf8;">MARIKINA RIVER SIMULATION</span>
+              <img src="/images/filipino_disaster_community.jpg" alt="Filipino Disaster Community">
+              <div class="slide-photo-caption">Philippine river basin flood scenario modeling rapid submersion and forced evacuation conditions.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 2 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: Opportunities -->
+      <section class="slide" id="slide-3" data-notes="Why does Resilia stand out? First, existing disaster apps trap users in loading spinners when cell towers flood; Resilia operates locally with sub-second response times. Second, we prioritize the vulnerable—bedridden seniors and nursing mothers are scored and rescued first. And third, our USP is a hybrid dual-engine: Google Gemini in the cloud for macro synthesis, paired with zero-overhead local execution when networks fail.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Comparative Advantage & USP</div>
+            <h1 class="slide-title">Opportunities</h1>
+            <p class="slide-subtitle">Addressing Critical Gaps in Existing Disaster Technologies</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="flex-direction: column; gap: 12px;">
+          <div class="card border-sky">
+            <h3 class="card-title text-sky">How different is it from any of the other existing ideas?</h3>
+            <ul class="feature-list">
+              <li class="feature-item"><strong>Local-First Edge Durability:</strong> Unlike cloud-dependent 911 portals that freeze during power blackouts, Resilia maintains 15 IndexedDB stores locally on client devices.</li>
+              <li class="feature-item"><strong>Tri-Role Operational Separation:</strong> Purpose-built cockpits tailored for Residents (reporting & beacon), Responders (GPS & START triage), and Coordinators (incident truth & ration ledgers).</li>
+              <li class="feature-item"><strong>Anti-Hallucination Grounding:</strong> Never invents safe routes; strictly cites verified emergency evidence IDs.</li>
+            </ul>
+          </div>
+
+          <div class="card border-accent">
+            <h3 class="card-title text-accent">How will it be able to solve the problem?</h3>
+            <ul class="feature-list">
+              <li class="feature-item"><strong>Sub-Second Local Latency:</strong> Eliminates loading spinners; citizen reports commit immediately to local edge storage.</li>
+              <li class="feature-item"><strong>Transparent Vulnerability Prioritization:</strong> 0–100 scoring prioritizing bedridden seniors, infants, and mobility-impaired residents.</li>
+              <li class="feature-item"><strong>Relief Aid Integrity:</strong> Tamper-resistant QR barcodes with 24-hour distribution cooldown prevent duplicate aid claims.</li>
+            </ul>
+          </div>
+
+          <div class="card border-primary">
+            <h3 class="card-title text-primary">USP of the proposed solution (Unique Selling Proposition)</h3>
+            <p class="card-text"><strong>Hybrid Dual-Engine AI with Zero-Compute Edge:</strong> Seamless transition between Google Cloud Gemini 3.8 Flash for macro intelligence and deterministic local arithmetic for micro-survival operations, requiring zero cloud compute spend at the edge.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 3 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: List of features offered by the solution -->
+      <section class="slide" id="slide-4" data-notes="These aren't hypothetical concepts—they are seven fully built community resilience modules in our codebase. From START casualty triage wristbands and fraud-proof ayuda relief scanning, to missing kin reunification and a 72-hour Leptospirosis prevention countdown, Resilia solves the actual operational hardships faced in Philippine evacuation shelters.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Feature Catalog</div>
+            <h1 class="slide-title">List of features offered by the solution</h1>
+            <p class="slide-subtitle">Seven Built Community Modules for Philippine Ground Realities</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-primary" style="height: 100%;">
+              <h3 class="card-title text-primary">Comprehensive Built Community Capabilities</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>1. Emergency Survival Beacon ("Find Me"):</strong> High-contrast OLED dark Morse SOS & GPS coordinate broadcaster.</li>
+                <li class="feature-item"><strong>2. START Field Triage & Rapid QR Wristbands:</strong> Simple Triage and Rapid Treatment (Green/Yellow/Red/Black) with client barcodes.</li>
+                <li class="feature-item"><strong>3. Tamper-Resistant Ayuda QR Ration Ledger:</strong> 24h distribution cooldown stops duplicate claims; auto-deducts inventory.</li>
+                <li class="feature-item"><strong>4. Missing Kin & Family Reunification:</strong> Privacy-preserving shelter bulletin with fuzzy search and masked numbers.</li>
+                <li class="feature-item"><strong>5. Special Needs Shelter Matrix:</strong> Live tracking for wheelchair ramps, lactating stations, dialysis, and pet zones.</li>
+                <li class="feature-item"><strong>6. Bayanihan Community Mutual Aid Board:</strong> Resident-to-resident power bank charging, medicine, and transport sharing.</li>
+                <li class="feature-item"><strong>7. Water Safety & Leptospirosis Outbreak Watch:</strong> DOH rolling boil water guide & 72h prophylaxis countdown.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="slide-photo-card" style="border-color: rgba(245, 158, 11, 0.4);">
+              <span class="slide-photo-badge" style="color: #fbbf24;">ROOFTOP SOS BEACON</span>
+              <img src="/images/feature_beacon_sos.jpg" alt="Emergency Survival Beacon">
+              <div class="slide-photo-caption">OLED Morse SOS strobe signaling rescue boats in nighttime flood conditions.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 4 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: Process flow diagram or Use-case diagram -->
+      <section class="slide" id="slide-5" data-notes="Our process flow diagram maps the complete disaster lifecycle across five stages. When a citizen reports an emergency or river sensors trigger Alarm Level 3, the event is immediately committed to local memory. Gemini clusters incidents online, while local rules compute vulnerability scores. Crucially, a human coordinator must authorize the dispatch, after which responders execute field triage and shelter teams log aid distribution.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Operational Lifecycle Flow</div>
+            <h1 class="slide-title">Process flow diagram or Use-case diagram</h1>
+            <p class="slide-subtitle">End-to-End Emergency Lifecycle: Incident Ingestion, AI Triage, Dispatch, and Resolution</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="align-items: center; justify-content: space-between; gap: 8px;">
+          <div class="card border-sky" style="flex: 1; min-height: 250px;">
+            <div class="template-banner-pill banner-blue" style="margin-bottom: 8px;">STAGE 1</div>
+            <h4 class="card-title text-sky">Incident Ingestion</h4>
+            <p class="card-text">Citizen submits SOS report or Marikina River gauge hits Alarm 3 (18m). Event written to local IndexedDB.</p>
+          </div>
+          <div style="color: var(--primary); font-size: 20px;">➔</div>
+
+          <div class="card border-primary" style="flex: 1; min-height: 250px;">
+            <div class="template-banner-pill banner-emerald" style="margin-bottom: 8px;">STAGE 2</div>
+            <h4 class="card-title text-primary">Dual-Engine Triage</h4>
+            <p class="card-text">Gemini 3.8 Flash clusters spatial reports online; local rules compute 0–100 vulnerability score offline.</p>
+          </div>
+          <div style="color: var(--primary); font-size: 20px;">➔</div>
+
+          <div class="card border-accent" style="flex: 1; min-height: 250px;">
+            <div class="template-banner-pill" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; margin-bottom: 8px;">STAGE 3</div>
+            <h4 class="card-title text-accent">Coordinator Gate</h4>
+            <p class="card-text">Incident Commander reviews AI mission route, inspects evidence IDs, and cryptographically authorizes dispatch.</p>
+          </div>
+          <div style="color: var(--primary); font-size: 20px;">➔</div>
+
+          <div class="card border-sky" style="flex: 1; min-height: 250px;">
+            <div class="template-banner-pill banner-blue" style="margin-bottom: 8px;">STAGE 4</div>
+            <h4 class="card-title text-sky">Field Execution</h4>
+            <p class="card-text">Responder navigates to scene, performs START triage (Green/Yellow/Red/Black), and logs patient condition.</p>
+          </div>
+          <div style="color: var(--primary); font-size: 20px;">➔</div>
+
+          <div class="card border-primary" style="flex: 1; min-height: 250px;">
+            <div class="template-banner-pill banner-emerald" style="margin-bottom: 8px;">STAGE 5</div>
+            <h4 class="card-title text-primary">Shelter & Ayuda Sync</h4>
+            <p class="card-text">Evacuee scans QR at shelter, receives relief pack with 24h cooldown, and Sync Agent replicates data to Cloud Run.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 5 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: Wireframes/Mock diagrams of the proposed solution (optional) -->
+      <section class="slide" id="slide-6" data-notes="Resilia delivers three purpose-built mobile interfaces. Residents receive a clear, high-contrast action cockpit with emergency alerts, shelter finders, and an SOS beacon. Responders receive an active mission console with real-time triage and GPS navigation. And Coordinators manage an operations command center with telemetry cross-checking and a human approval gatekeeper.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">UI/UX System Architecture</div>
+            <h1 class="slide-title">Wireframes/Mock diagrams of the proposed solution (optional)</h1>
+            <p class="slide-subtitle">Role-Based Mobile Interfaces: Resident, Responder, and Coordinator</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="gap: 16px;">
+          <div class="slide-photo-card" style="flex: 1; border-color: rgba(16, 185, 129, 0.5);">
+            <span class="slide-photo-badge" style="color: #34d399;">1. RESIDENT INTERFACE</span>
+            <img src="/images/resilia_phone_resident.jpg" alt="Resident Phone Interface" style="max-height: 290px; object-fit: contain;">
+            <div class="slide-photo-caption">Action Cockpit: Emergency Alert, Get Help, Find Shelter, Morse SOS Beacon, 72h Go-Bag Checklist.</div>
+          </div>
+
+          <div class="slide-photo-card" style="flex: 1; border-color: rgba(2, 132, 199, 0.5);">
+            <span class="slide-photo-badge" style="color: #38bdf8;">2. RESPONDER COCKPIT</span>
+            <img src="/images/resilia_phone_responder.jpg" alt="Responder Phone Interface" style="max-height: 290px; object-fit: contain;">
+            <div class="slide-photo-caption">Field Cockpit: Active Mission (P94, 6m ETA), START Triage, Go-Bag Check, Radio Net, Local Storage.</div>
+          </div>
+
+          <div class="slide-photo-card" style="flex: 1; border-color: rgba(245, 158, 11, 0.5);">
+            <span class="slide-photo-badge" style="color: #fbbf24;">3. COORDINATOR OPERATIONS</span>
+            <img src="/images/resilia_phone_coordinator.jpg" alt="Coordinator Phone Interface" style="max-height: 290px; object-fit: contain;">
+            <div class="slide-photo-caption">Operations Center: Telemetry Corroboration, Shelter Capacities, Ayuda Ledger, Human Dispatch Approval.</div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 6 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: Architecture diagram of the proposed solution -->
+      <section class="slide" id="slide-7" data-notes="Resilia's architecture pairs Google Cloud with resilient edge execution. In the cloud, Gemini 3.8 Flash and Cloud Run provide situational intelligence and city-wide synchronization. At the edge, a Progressive Web App powered by 15 IndexedDB stores executes deterministic triage and inventory rules. When connectivity drops, edge operations continue seamlessly; when restored, idempotent sync merges all records.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">System & AI Architecture</div>
+            <h1 class="slide-title">Architecture diagram of the proposed solution</h1>
+            <p class="slide-subtitle">Hybrid Dual-Engine Architecture: Google Cloud Platform + Resilient Edge Runtime</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-sky" style="height: 100%;">
+              <h3 class="card-title text-sky">Google Cloud Platform (Macro Core)</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>Google Gemini 3.8 Flash (@google/genai SDK):</strong> Multi-incident synthesis, situation summaries, and Tagalog/English translation.</li>
+                <li class="feature-item"><strong>Google Cloud Run:</strong> Containerized Node.js service hosting REST endpoints (/api/v1/telemetry, /api/v1/sync).</li>
+                <li class="feature-item"><strong>Google Cloud Firestore:</strong> Distributed document datastore for city-wide disaster coordination and historical archives.</li>
+                <li class="feature-item"><strong>Google Maps Platform:</strong> Geospatial mapping, flood polygon overlays, and route verification.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="card border-primary">
+              <h3 class="card-title text-primary">Resilient Edge Runtime (Micro Core)</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>Browser IndexedDB (resilia_local_db):</strong> 15 versioned object stores persisting citizen reports, shelters, and relief logs.</li>
+                <li class="feature-item"><strong>Local Deterministic Agent Orchestrator:</strong> Mathematical vulnerability scoring (0-100), keyword lookup, zero-overdraft arithmetic.</li>
+                <li class="feature-item"><strong>Service Worker & PWA Cache:</strong> Pre-caches application shell for instant boot even under total cellular blackout.</li>
+              </ul>
+            </div>
+
+            <div class="card border-accent">
+              <h3 class="card-title text-accent">Durable Reconnection & Sync</h3>
+              <p class="card-text"><strong>Idempotent Sync Agent:</strong> UUID transaction journal, SHA-256 conflict hashes, and exponential backoff health probing (/api/v1/health).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 7 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 8: Technologies to be used in the solution -->
+      <section class="slide" id="slide-8" data-notes="We selected an enterprise-grade Google Cloud stack paired with modern web standards. We use Google Gemini 3.8 Flash for AI reasoning, Cloud Run for containerized backend services, and React 19 with Vite and Tailwind for the front end. On the client, browser IndexedDB provides transactional storage, and the entire stack can run locally on a thirty-five dollar Raspberry Pi mesh node.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Technology Stack</div>
+            <h1 class="slide-title">Technologies to be used in the solution</h1>
+            <p class="slide-subtitle">Google Cloud Platform, Modern Edge Runtime, and Mobile Web Technologies</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-sky" style="height: 100%;">
+              <h3 class="card-title text-sky">Core Technology Stack</h3>
+              <ul class="feature-list">
+                <li class="feature-item"><strong>Google Cloud & AI:</strong> Google Gemini 3.8 Flash (@google/genai), Google Cloud Run, Cloud Firestore, Google Maps Platform.</li>
+                <li class="feature-item"><strong>Frontend & Mobile PWA:</strong> React 19, TypeScript 7.0, Vite 8.3, Tailwind CSS 4.3, Lucide React, Workbox Service Worker.</li>
+                <li class="feature-item"><strong>Edge Persistence & Security:</strong> Browser IndexedDB with 15 typed stores, client-side QR/Barcodes, SHA-256 hashing, RBAC.</li>
+                <li class="feature-item"><strong>Edge Micro-Server:</strong> Node.js 22 LTS, Express 4.21, Docker, compatible with low-cost $35 Raspberry Pi mesh nodes.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="slide-photo-card" style="border-color: rgba(16, 185, 129, 0.4);">
+              <span class="slide-photo-badge" style="color: #34d399;">COMMAND & EDGE MESH</span>
+              <img src="/images/emergency_command_mesh.jpg" alt="Emergency Command Mesh">
+              <div class="slide-photo-caption">Barangay DRRMO Command center powered by containerized Cloud Run backend and local edge Wi-Fi node.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 8 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: Estimated implementation cost (optional) -->
+      <section class="slide" id="slide-9" data-notes="Resilia is engineered to be exceptionally frugal and sustainable for developing communities. The client app costs zero dollars per citizen because it runs in the browser. A local shelter Wi-Fi node costs under sixty dollars using a Raspberry Pi. And our Google Cloud infrastructure scales to zero between storms, costing under fifty dollars per month during active emergencies.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Cost & Resource Estimation (Optional)</div>
+            <h1 class="slide-title">Estimated implementation cost (optional)</h1>
+            <p class="slide-subtitle">Frugal, Highly Scalable Cost Model for Community & LGU Deployments</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="flex-direction: column; justify-content: center; gap: 16px;">
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="stat-number">$0.00</div>
+              <div class="stat-label">Citizen Edge Client</div>
+              <div class="stat-subtext">Runs in mobile web browsers as a PWA. Zero app store fees or client licensing.</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number text-sky">~$35–$60</div>
+              <div class="stat-label">Local Shelter Mesh Node</div>
+              <div class="stat-subtext">One-time hardware cost per shelter (Raspberry Pi 4/5 or repurposed PC serving local Wi-Fi).</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number text-accent">$15–$50/mo</div>
+              <div class="stat-label">Google Cloud Run & Firestore</div>
+              <div class="stat-subtext">Serverless pay-as-you-go architecture scales to zero during calm months with zero idle costs.</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" style="color: #a78bfa;">~$10–$30/mo</div>
+              <div class="stat-label">Google Gemini 3.8 Flash API</div>
+              <div class="stat-subtext">Prompt caching, concise structured outputs, and local fallback keep active disaster API costs minimal.</div>
+            </div>
+          </div>
+
+          <div class="card border-primary" style="text-align: center;">
+            <p class="card-text" style="font-size: 13px; font-weight: 700; color: #34d399;">Total Multi-Shelter Community Pilot: Under $500 across Marikina River Basin barangays.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 9 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: Snapshots of the prototype -->
+      <section class="slide" id="slide-10" data-notes="Here are direct snapshots of our working prototype in action. You can see emergency responders conducting START triage tagging, evacuation volunteers managing fraud-proof ayuda QR ration distribution, community members exchanging solar power on the Bayanihan board, and our rooftop survival beacon signaling rescue boats.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Prototype Visual Showcase</div>
+            <h1 class="slide-title">Snapshots of the prototype</h1>
+            <p class="slide-subtitle">Live Operational Prototype Validated on Simulated Marikina River Scenarios</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr); width: 100%; gap: 14px;">
+            <div class="slide-photo-card" style="border-color: rgba(16, 185, 129, 0.4);">
+              <span class="slide-photo-badge" style="color: #34d399;">START FIELD TRIAGE</span>
+              <img src="/images/feature_start_triage.jpg" alt="START Field Triage" style="max-height: 110px;">
+              <div class="slide-photo-caption">Responder START triage tagging with scannable QR wristbands.</div>
+            </div>
+
+            <div class="slide-photo-card" style="border-color: rgba(2, 132, 199, 0.4);">
+              <span class="slide-photo-badge" style="color: #38bdf8;">AYUDA QR RATION LEDGER</span>
+              <img src="/images/evacuation_relief_ayuda.jpg" alt="Ayuda QR Ration Distribution" style="max-height: 110px;">
+              <div class="slide-photo-caption">Evacuation shelter QR relief distribution with 24h cooldown tracking.</div>
+            </div>
+
+            <div class="slide-photo-card" style="border-color: rgba(245, 158, 11, 0.4);">
+              <span class="slide-photo-badge" style="color: #fbbf24;">BAYANIHAN MUTUAL AID</span>
+              <img src="/images/feature_bayanihan_aid.jpg" alt="Bayanihan Mutual Aid" style="max-height: 110px;">
+              <div class="slide-photo-caption">Peer-to-peer power bank charging and medical supply exchange.</div>
+            </div>
+
+            <div class="slide-photo-card" style="border-color: rgba(236, 72, 153, 0.4);">
+              <span class="slide-photo-badge" style="color: #f472b6;">SURVIVAL BEACON</span>
+              <img src="/images/feature_beacon_sos.jpg" alt="Emergency Survival Beacon" style="max-height: 110px;">
+              <div class="slide-photo-caption">High-visibility OLED Morse code strobe and GPS coordinate beacon.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 10 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: Prototype Performance report/Benchmarking -->
+      <section class="slide" id="slide-11" data-notes="Resilia is backed by 244 passing automated test assertions. In software simulation modeled on the Marikina River Basin, local transaction latency remained under fifteen milliseconds even during simulated total network loss. Vulnerability scoring successfully prioritized bedridden citizens at 94 out of 100, and relief ledgers prevented duplicate claims with zero overdrafts.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Verification & Benchmarks</div>
+            <h1 class="slide-title">Prototype Performance report/Benchmarking</h1>
+            <p class="slide-subtitle">Rigorous Engineering Verification Across 244 Automated Test Assertions</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div class="card border-accent">
+            <p class="card-text"><strong>Simulation & Validation Scope:</strong> Evaluated against simulated Marikina River Basin flood telemetry (Typhoon Ondoy / Ulysses baselines); not tested in actual live disasters. Verifies deterministic inventory arithmetic, vulnerability prioritization, and sync queues under simulated total packet loss.</p>
+          </div>
+
+          <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
+            <div class="stat-box">
+              <div class="stat-number">244/244</div>
+              <div class="stat-label">Automated Tests</div>
+              <div class="stat-subtext">5 test suites passing with 0 errors</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number text-sky">&lt; 15 ms</div>
+              <div class="stat-label">Local Write Latency</div>
+              <div class="stat-subtext">Instant IndexedDB commit</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number text-danger">94 / 100</div>
+              <div class="stat-label">Priority Escalation</div>
+              <div class="stat-subtext">Bedridden seniors rescued first</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" style="color: #a78bfa;">24 Hours</div>
+              <div class="stat-label">Ayuda Cooldown</div>
+              <div class="stat-subtext">Stops duplicate relief claims</div>
+            </div>
+          </div>
+
+          <div class="card border-primary">
+            <h3 class="card-title text-primary">Deterministic Zero-Overdraft Validation</h3>
+            <p class="card-text">Warehouse inventory arithmetic strictly rejects allocations exceeding available stock, guaranteeing aid integrity even during prolonged disconnected periods.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 11 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 12: Additional Details/Future Development (if any) -->
+      <section class="slide" id="slide-12" data-notes="Looking ahead, our roadmap bridges software simulation to nationwide deployment. Phase 1 proves the prototype architecture. In Phase 2, we will pilot with the Marikina City Disaster Risk Reduction and Management Office while integrating LoRa mesh hardware. In Phase 3, we aim to scale across 42,000 Philippine barangays and vulnerable coastal regions across JAPAC.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Roadmap & Next Steps</div>
+            <h1 class="slide-title">Additional Details/Future Development (if any)</h1>
+            <p class="slide-subtitle">Roadmap: From Simulated Baseline to Barangay Field Pilots & Regional Scaling</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="gap: 16px;">
+          <div class="card border-primary" style="flex: 1;">
+            <div class="template-banner-pill banner-emerald" style="margin-bottom: 8px;">PHASE 1 (IMMEDIATE)</div>
+            <h4 class="card-title text-primary">Working Prototype</h4>
+            <ul class="feature-list">
+              <li class="feature-item">Software prototype validated on simulated Marikina River flood telemetry.</li>
+              <li class="feature-item">244 automated test assertions passing across 7 community modules.</li>
+              <li class="feature-item">Full-stack React 19 + Gemini 3.8 Flash + IndexedDB dual-engine runtime.</li>
+            </ul>
+          </div>
+
+          <div class="card border-sky" style="flex: 1;">
+            <div class="template-banner-pill banner-blue" style="margin-bottom: 8px;">PHASE 2 (MONTHS 3–6)</div>
+            <h4 class="card-title text-sky">Barangay Field Pilots</h4>
+            <ul class="feature-list">
+              <li class="feature-item">Multi-shelter field pilot with Marikina City DRRMO.</li>
+              <li class="feature-item">LoRa and Bluetooth Low Energy mesh hardware node integration.</li>
+              <li class="feature-item">Local VHF radio packet gateway for emergency responder fleets.</li>
+            </ul>
+          </div>
+
+          <div class="card border-accent" style="flex: 1;">
+            <div class="template-banner-pill" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; margin-bottom: 8px;">PHASE 3 (MONTHS 6–18)</div>
+            <h4 class="card-title text-accent">Nationwide Scaling</h4>
+            <ul class="feature-list">
+              <li class="feature-item">Scaling to 17 Metro Manila LGUs and 42,000+ Philippine Barangays via OCD / DILG.</li>
+              <li class="feature-item">Multi-lingual localization in Tagalog, Cebuano, and Ilocano.</li>
+              <li class="feature-item">Regional expansion to vulnerable coastal river basins across JAPAC.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 12 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 13: Provide links to your: -->
+      <section class="slide" id="slide-13" data-notes="You can explore all our submission deliverables through these three links: our public GitHub repository with full source code and test suites; our three-minute Full HD demo video with compassionate voiceover; and our live production web application where you can toggle offline simulation and experience Resilia first-hand.">
+        <div>
+          <div class="official-template-header-banner">
+            <img src="/images/ai_builder_cup_header.png" alt="Google Cloud | H2S AI Builder Cup Header Banner" class="official-header-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">Submission Deliverables</div>
+            <h1 class="slide-title">Provide links to your:</h1>
+            <p class="slide-subtitle">GitHub Public Repository, 3-Minute Demo Video, and Final Product Prototype</p>
+          </div>
+        </div>
+
+        <div class="slide-body" style="gap: 16px;">
+          <div class="card border-sky" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="template-banner-pill banner-blue" style="margin-bottom: 8px;">CODE REPOSITORY</div>
+              <h3 class="card-title text-sky">GitHub Public Repository</h3>
+              <p class="card-text" style="margin-bottom: 12px;">Complete open-source codebase containing React 19, TypeScript, Express backend, Google Gemini 3.8 Flash SDK, 15 IndexedDB stores, and 244 automated tests.</p>
+            </div>
+            <a href="https://github.com/resilia-project/resilia" target="_blank" class="btn" style="border-color: #0284c7; color: #38bdf8;">
+              <span>🔗</span> github.com/resilia-project/resilia
+            </a>
+          </div>
+
+          <div class="card border-primary" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="template-banner-pill banner-emerald" style="margin-bottom: 8px;">DEMO VIDEO</div>
+              <h3 class="card-title text-primary">Demo Video Link (3 Minutes)</h3>
+              <p class="card-text" style="margin-bottom: 12px;">Exactly 03:00.00 Full HD (1920x1080) walkthrough narrated with a compassionate female voiceover showcasing all three roles and seven community resilience modules.</p>
+            </div>
+            <a href="/resilia_demo_video.mp4" target="_blank" class="btn btn-primary">
+              🎬 Watch 3-Min Demo Video (MP4)
+            </a>
+          </div>
+
+          <div class="card border-accent" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="template-banner-pill" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; margin-bottom: 8px;">FINAL PRODUCT</div>
+              <h3 class="card-title text-accent">Final Product Link</h3>
+              <p class="card-text" style="margin-bottom: 12px;">Fully interactive Progressive Web App featuring instant offline simulation toggle, tri-role interface switcher (Resident, Responder, Coordinator), and real-time river telemetry.</p>
+            </div>
+            <a href="/" target="_blank" class="btn btn-accent">
+              <span>🚀</span> Open Live Resilia App
+            </a>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 13 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 14: Thank you -->
+      <section class="slide" id="slide-14" data-notes="Disasters are inevitable, but being left in the dark is not. Resilia demonstrates how Google Cloud AI and edge resilience can protect vulnerable communities when they need it most. On behalf of the Resilia team, thank you to the Google Cloud AI Builder Cup judges, and we look forward to your questions.">
+        <div>
+          <div class="official-template-thankyou-banner">
+            <img src="/images/ai_builder_cup_thank_you.png" alt="Google Cloud | H2S AI Builder Cup Thank You Graphic" class="official-thankyou-img">
+          </div>
+          <div class="slide-header">
+            <div class="slide-tag">AI Builder Cup — Build in JAPAC. Build for the world.</div>
+            <h1 class="slide-title">Thank you</h1>
+            <p class="slide-subtitle">"Maintaining vital community lifelines when networks fail."</p>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="col-left">
+            <div class="card border-primary" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+              <h3 class="card-title text-primary" style="font-size: 18px; margin-bottom: 12px;">Google Cloud | H2S — AI Builder Cup Submission</h3>
+              <ul class="feature-list" style="margin-bottom: 16px;">
+                <li class="feature-item"><strong>Project:</strong> RESILIA — Resilient Community Disaster Coordination Platform</li>
+                <li class="feature-item"><strong>Competition:</strong> Google Cloud | H2S — AI Builder Cup: Build in JAPAC. Build for the world.</li>
+                <li class="feature-item"><strong>Team:</strong> Resilia Disaster Resilience Engineering Team</li>
+                <li class="feature-item"><strong>Commitment:</strong> <em>"When the skies darken, the sirens wail, and the cellular towers fall silent... Resilia keeps the lifeline open."</em></li>
+              </ul>
+              <p class="card-text" style="color: #94a3b8;">Thank you to Google Cloud and Hack2Skill for empowering developers to build solutions for resilient communities!</p>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="slide-photo-card" style="border-color: rgba(2, 132, 199, 0.4);">
+              <span class="slide-photo-badge" style="color: #38bdf8;">RESILIA PLATFORM</span>
+              <img src="/images/resilia_app_cellphone.jpg" alt="Resilia Platform">
+              <div class="slide-photo-caption">Built for Google Cloud AI Builder Cup (JAPAC). Ready for community piloting.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="footer-meta">
+            <span>Google Cloud | H2S — AI Builder Cup Submission</span>
+            <span>Slide 14 of 14</span>
+          </div>
+          <div class="official-footer-strip">
+            <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud 4-color footer strip" class="footer-strip-img">
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <button class="btn" id="btnPrev" onclick="prevSlide()" title="Previous slide (Left Arrow)">◀ Previous</button>
+      <div class="slide-counter" id="slideCounter">1 / 14</div>
+      <button class="btn btn-primary" id="btnNext" onclick="nextSlide()" title="Next slide (Right Arrow / Space)">Next ▶</button>
+      
+      <div style="height: 20px; width: 1px; background: #334155;"></div>
+
+      <select id="slideSelect" class="btn" style="background: #0f172a;" onchange="goToSlide(parseInt(this.value))">
+        <option value="1">1. Team Details</option>
+        <option value="2">2. Brief about the idea</option>
+        <option value="3">3. Opportunities</option>
+        <option value="4">4. List of features offered by the solution</option>
+        <option value="5">5. Process flow diagram or Use-case diagram</option>
+        <option value="6">6. Wireframes/Mock diagrams of the proposed solution (optional)</option>
+        <option value="7">7. Architecture diagram of the proposed solution</option>
+        <option value="8">8. Technologies to be used in the solution</option>
+        <option value="9">9. Estimated implementation cost (optional)</option>
+        <option value="10">10. Snapshots of the prototype</option>
+        <option value="11">11. Prototype Performance report/Benchmarking</option>
+        <option value="12">12. Additional Details/Future Development (if any)</option>
+        <option value="13">13. Provide links to your:</option>
+        <option value="14">14. Thank you</option>
+      </select>
+
+      <button class="btn" onclick="toggleNotes()" title="Toggle speaker script drawer (N)">
+        <span>📝</span> Speaker Script
+      </button>
+    </div>
+
+    <!-- Speaker Notes Drawer -->
+    <div class="speaker-notes-panel" id="speakerNotesPanel">
+      <div class="speaker-notes-title">
+        <span>🎙️</span> Verbatim Speaker Script (Slide <span id="notesSlideNumber">1</span>)
+      </div>
+      <div class="speaker-notes-content" id="speakerNotesContent">
+        Loading speaker script...
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 14;
+
+    function updateSlide() {
+      // Update active slide class
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (slide) {
+          if (i === currentSlide) {
+            slide.classList.add('active');
+            // Update speaker notes content
+            const notes = slide.getAttribute('data-notes') || 'No speaker script provided.';
+            document.getElementById('speakerNotesContent').textContent = `"${notes}"`;
+          } else {
+            slide.classList.remove('active');
+          }
+        }
+      }
+
+      // Update counters & select
+      document.getElementById('slideCounter').textContent = `${currentSlide} / ${totalSlides}`;
+      document.getElementById('slideSelect').value = currentSlide;
+      document.getElementById('notesSlideNumber').textContent = currentSlide;
+
+      // Update button states
+      document.getElementById('btnPrev').disabled = (currentSlide === 1);
+      document.getElementById('btnNext').disabled = (currentSlide === totalSlides);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(num) {
+      if (num >= 1 && num <= totalSlides) {
+        currentSlide = num;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      const panel = document.getElementById('speakerNotesPanel');
+      panel.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      const vp = document.getElementById('viewport');
+      if (!document.fullscreenElement) {
+        if (vp.requestFullscreen) vp.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'Home') {
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        goToSlide(totalSlides);
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    // Touch swipe support
+    let touchStartX = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchStartX - touchEndX > 50) nextSlide();
+      if (touchEndX - touchStartX > 50) prevSlide();
+    }, { passive: true });
+
+    // Initial setup
+    updateSlide();
+  </script>
+</body>
+</html>

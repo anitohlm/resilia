@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Cloud | H2S — AI Builder Cup Submission | RESILIA Pitch Deck</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <style>
+    :root {
+      --bg-workspace: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #cbd5e1;
+      --google-blue: #1a73e8;
+      --google-blue-hover: #1557b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Google Sans", "Google Sans Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-workspace);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Toolbar */
+    header.deck-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1a73e8, #34a853);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      border: 1px solid #bae6fd;
+      font-weight: 600;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    .btn-primary {
+      background: var(--google-blue);
+      border-color: var(--google-blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--google-blue-hover);
+      border-color: var(--google-blue-hover);
+      color: #ffffff;
+    }
+
+    /* Deck Viewport */
+    main.deck-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    .deck-container {
+      width: 100%;
+      max-width: 1080px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+    }
+
+    /* Individual Slide */
+    .slide {
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* Slide Header & Footer Images */
+    .slide-banner-top {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none;
+    }
+
+    .slide-footer-strip {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin-top: auto;
+      user-select: none;
+    }
+
+    .slide-body {
+      flex: 1;
+      padding: 20px 36px 12px 36px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .slide-header-box {
+      margin-bottom: 14px;
+    }
+
+    .slide-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.25;
+      letter-spacing: -0.3px;
+    }
+
+    .slide-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #334155;
+      overflow-y: auto;
+    }
+
+    /* Bullet List Styling */
+    .clean-bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .clean-bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .bullet-dot {
+      color: #2563eb;
+      font-size: 14px;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    .bullet-text strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    /* Grid for Stage Boxes on Process Flow */
+    .process-stages-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stage-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stage-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2563eb;
+      text-transform: uppercase;
+    }
+
+    .stage-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 3px 0;
+    }
+
+    .stage-desc {
+      font-size: 10.5px;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* Grid for Phone Screenshots */
+    .phone-mockups-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      height: 100%;
+      align-items: center;
+    }
+
+    .phone-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .phone-img {
+      max-height: 290px;
+      width: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+
+    .phone-caption {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .phone-sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* Architecture Tiers */
+    .arch-tiers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .arch-tier-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    .arch-tier-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .arch-tier-desc {
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    /* Grid for Prototype Photos */
+    .prototype-photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .proto-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .proto-thumb {
+      width: 140px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+      border: 1px solid #cbd5e1;
+    }
+
+    .proto-info {
+      flex: 1;
+    }
+
+    .proto-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+
+    .proto-desc {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.35;
+    }
+
+    /* Bottom Controller */
+    .deck-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 12px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      min-width: 110px;
+      text-align: center;
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-notes-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-top: 2px solid #cbd5e1;
+      padding: 16px 24px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+      display: none;
+      z-index: 90;
+    }
+
+    .speaker-notes-panel.active {
+      display: block;
+    }
+
+    .notes-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2563eb;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .notes-text {
+      font-size: 13.5px;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    /* Fullscreen Mode */
+    body.fullscreen-mode {
+      background: #000000;
+    }
+
+    body.fullscreen-mode header.deck-header {
+      display: none;
+    }
+
+    body.fullscreen-mode .deck-controls {
+      display: none;
+    }
+
+    body.fullscreen-mode main.deck-viewport {
+      padding: 0;
+    }
+
+    body.fullscreen-mode .deck-container {
+      max-width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+
+    body.fullscreen-mode .slide {
+      border-radius: 0;
+      border: none;
+    }
+
+    /* Print & PDF Export Rules */
+    @media print {
+      body {
+        background: #ffffff !important;
+        overflow: visible !important;
+      }
+      header.deck-header,
+      .deck-controls,
+      .speaker-notes-panel {
+        display: none !important;
+      }
+      main.deck-viewport {
+        padding: 0 !important;
+        display: block !important;
+        overflow: visible !important;
+      }
+      .deck-container {
+        max-width: 100% !important;
+        aspect-ratio: auto !important;
+        height: auto !important;
+        position: static !important;
+      }
+      .slide {
+        display: flex !important;
+        position: relative !important;
+        width: 100% !important;
+        height: 100vh !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        box-shadow: none !important;
+        border: none !important;
+        margin-bottom: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Toolbar -->
+  <header class="deck-header">
+    <div class="brand">
+      <div class="brand-icon">R</div>
+      <div>
+        <div class="brand-title">RESILIA — Community Disaster Coordination Platform</div>
+        <div style="font-size: 11px; color: #64748b;">Google Cloud | H2S — AI Builder Cup (JAPAC 2026)</div>
+      </div>
+      <span class="brand-badge">Official Template</span>
+    </div>
+    <div class="toolbar-actions">
+      <a href="/resilia_demo_video.mp4" target="_blank" class="btn">
+        🎬 Watch 3-Min Demo Video (MP4)
+      </a>
+      <a href="/Resilia_Competition_Pitch_Deck.pptx" download="Resilia_Competition_Pitch_Deck.pptx" class="btn btn-primary">
+        📥 Download PowerPoint (.pptx)
+      </a>
+      <button class="btn" id="btn-toggle-notes" onclick="toggleNotes()">
+        🎙️ Speaker Notes (<kbd>N</kbd>)
+      </button>
+      <button class="btn" id="btn-fullscreen" onclick="toggleFullscreen()">
+        ⛶ Fullscreen (<kbd>F</kbd>)
+      </button>
+    </div>
+  </header>
+
+  <!-- Deck Viewport -->
+  <main class="deck-viewport">
+    <div class="deck-container">
+
+      <!-- Slide 1: Cover / Team Details -->
+      <section class="slide active" id="slide-1" data-notes="Disasters don't wait for good Wi-Fi. In the first 72 hours of a typhoon or flood, cellular infrastructure often fails and power grids go dark. Resilia is an AI-assisted community disaster coordination platform designed to keep vital lifelines open even under severe network disruptions. We are proud to submit Resilia to the Google Cloud AI Builder Cup.">
+        <img src="/images/ai_builder_cup_title_banner.png" alt="Google Cloud | H2S AI Builder Cup" class="slide-banner-top">
+        <div class="slide-body" style="padding-top: 28px;">
+          <h1 style="font-size: 26px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">Team Details</h1>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 16px; color: #1e293b;">
+            <div><strong>a. Team name:</strong> Resilia Resilience Team</div>
+            <div><strong>b. Team leader name:</strong> Christian Manito (Resilia Lead)</div>
+            <div><strong>c. Problem Statement:</strong> AI for Disaster Risk Reduction &amp; Resilient Communities: Overcoming the 72-Hour Blackout Crisis in Typhoon &amp; Flood Disasters (UN SDG 11 &amp; SDG 13)</div>
+          </div>
+          <div style="margin-top: 24px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12.5px; color: #475569;">
+            <strong>Project Focus:</strong> Offline-First Community Disaster Lifeline pairing Google Gemini 3.8 Flash in the cloud with client IndexedDB edge durability.
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 2: Template Instructions & Download Note -->
+      <section class="slide" id="slide-2" data-notes="This submission deck has been directly authored inside the official Google Cloud AI Builder Cup presentation template, preserving all original branding, layouts, embedded Google Sans typography, and slide structures without custom aesthetic overrides.">
+        <div style="background: #1e293b; color: white; padding: 16px 36px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 14px; font-weight: 600;">Official AI Builder Cup Template Instructions</span>
+          <span style="font-size: 11px; background: #0284c7; padding: 2px 8px; border-radius: 4px;">Completed Submission</span>
+        </div>
+        <div class="slide-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; background: #0f172a; color: white;">
+          <div style="text-align: center;">
+            <img src="/images/resilia_app_cellphone.jpg" alt="Template Download Guide" style="max-height: 240px; border-radius: 6px; border: 1px solid #334155;">
+          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: #e2e8f0;">
+            <div style="font-size: 18px; font-weight: 700; color: #38bdf8; margin-bottom: 12px;">Note:</div>
+            <p style="margin-bottom: 12px;">Please download this template to make your edits and submit the final version.</p>
+            <p style="margin-bottom: 16px;">To download, go to <strong>File &gt; Download &gt; Microsoft PowerPoint (.PPTX)</strong>. Kindly refrain from sending edit requests.</p>
+            <div style="padding: 10px 14px; background: #1e293b; border-radius: 6px; font-size: 12px; color: #94a3b8;">
+              ✓ Status: Complete Resilia competition pitch deck populated inside official template structure.
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 3: Brief about the idea -->
+      <section class="slide" id="slide-3" data-notes="Every modern disaster management tool makes one fatal assumption: that the internet will work. But in climate-vulnerable regions across JAPAC, cell towers drown and power lines snap. Resilia bridges this gap with a hybrid architecture: leveraging Google Gemini 3.8 Flash in the cloud for deep situational intelligence, while executing deterministic algorithms locally on edge devices so life-saving coordination never stops.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Brief about the idea</h2>
+            <div class="slide-subtitle">AI-Assisted Community Disaster Coordination Operating Under Severe Network Degradation</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>The 72-Hour Blackout Crisis:</strong> Severe climate disasters knock out power grids and cellular infrastructure in vulnerable coastal river basins (modeled on the Marikina River). Conventional cloud-only tools fail with blank loading spinners during the critical first 72 hours.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Hybrid Dual-Engine AI Architecture:</strong> Combines Google Gemini 3.8 Flash in the cloud for deep situational reasoning and predictive clustering with zero-overhead client IndexedDB edge persistence (15 stores) and deterministic local algorithms when connectivity drops.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Offline-First Tri-Role Community Coordination:</strong> Tailored, low-friction mobile workflows for Residents (instant SOS beacon &amp; shelter locator), Responders (START casualty triage &amp; QR wristbands), and Coordinators (shelter capacity &amp; cryptographic dispatch gate) operating with zero active internet.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Anti-Hallucination Emergency Safety:</strong> Deterministic safety boundaries grounded strictly in Philippine NDRRMC and DOH disaster SOPs, requiring human coordinator cryptographic authorization for emergency dispatches.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Rigorous Verification Baseline:</strong> Evaluated against simulated Marikina River Basin telemetry (Typhoon Ondoy / Ulysses baselines, Alarm Level 3 at 18m water depth) backed by automated test validation.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 4: Opportunities -->
+      <section class="slide" id="slide-4" data-notes="Why does Resilia stand out? First, existing disaster apps trap users in loading spinners when cell towers flood; Resilia operates locally with sub-second response times. Second, we prioritize the vulnerable—bedridden seniors and nursing mothers are scored and rescued first. And third, our USP is a hybrid dual-engine: Google Gemini in the cloud for macro synthesis, paired with zero-overhead local execution when networks fail.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Opportunities</h2>
+            <div class="slide-subtitle">Addressing Critical Gaps in Existing Disaster Technologies</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text">
+                  <strong>How different is it from any of the other existing ideas?</strong>
+                  <div style="margin-top: 3px; color: #475569;">
+                    • <em>Local-First Edge Durability:</em> Unlike cloud-only apps that freeze when cell towers submerge, Resilia executes complete workflows 100% offline via browser IndexedDB with sub-15ms write latency.<br>
+                    • <em>Role-Tailored Ground Operations:</em> Dedicated cockpits for Residents, Responders, and Coordinators instead of generic forms.
+                  </div>
+                </div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text">
+                  <strong>How will it be able to solve the problem?</strong>
+                  <div style="margin-top: 3px; color: #475569;">
+                    • <em>Sub-Second Local Logging:</em> Citizen reports commit instantly to device storage and queue for automatic sync upon reconnection.<br>
+                    • <em>Transparent Vulnerability Scoring:</em> Prioritizes bedridden seniors, infants, and chronic medical cases over first-come-first-served queues.<br>
+                    • <em>Tamper-Resistant Ayuda QR Ledger:</em> 24-hour distribution cooldown timer prevents duplicate claims and relief hoarding.
+                  </div>
+                </div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text">
+                  <strong>USP of the proposed solution:</strong>
+                  <div style="margin-top: 3px; color: #475569;">
+                    • <em>Adaptive Dual-Engine AI Continuum:</em> Unifies Google Gemini 3.8 Flash in the cloud for macro situation synthesis with zero-spend deterministic edge execution when connectivity is completely severed.
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 5: List of features offered by the solution -->
+      <section class="slide" id="slide-5" data-notes="These aren't hypothetical concepts—they are seven fully built community resilience modules in our codebase. From START casualty triage wristbands and fraud-proof ayuda relief scanning, to missing kin reunification and a 72-hour Leptospirosis prevention countdown, Resilia solves the actual operational hardships faced in Philippine evacuation shelters.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">List of features offered by the solution</h2>
+            <div class="slide-subtitle">Seven Built Community Modules for Philippine Ground Realities</div>
+          </div>
+          <div class="slide-content">
+            <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 18px; align-items: center;">
+              <ul class="clean-bullet-list">
+                <li class="clean-bullet-item"><span class="bullet-dot">1.</span><div class="bullet-text"><strong>Emergency Survival Beacon ('Find Me'):</strong> High-contrast OLED dark Morse SOS strobe with GPS broadcaster.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">2.</span><div class="bullet-text"><strong>START Field Triage &amp; Rapid QR Wristbands:</strong> Standardized Simple Triage and Rapid Treatment with client barcodes.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">3.</span><div class="bullet-text"><strong>Tamper-Resistant 'Ayuda' QR Ration Ledger:</strong> 24h distribution cooldown stops duplicate claims; auto-deducts inventory.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">4.</span><div class="bullet-text"><strong>Missing Kin &amp; Family Reunification:</strong> Privacy-preserving shelter bulletin with fuzzy search and masked contact numbers.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">5.</span><div class="bullet-text"><strong>Special Needs Shelter Matrix:</strong> Live status of wheelchair ramps, lactating stations, dialysis support, and generator fuel.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">6.</span><div class="bullet-text"><strong>'Bayanihan' Community Mutual Aid Board:</strong> Peer-to-peer power bank charging, medicine exchange, and transport sharing.</div></li>
+                <li class="clean-bullet-item"><span class="bullet-dot">7.</span><div class="bullet-text"><strong>Water Safety &amp; Leptospirosis Outbreak Watch:</strong> DOH-grounded rolling boil water guide &amp; 72h prophylaxis countdown.</div></li>
+              </ul>
+              <div style="text-align: center;">
+                <img src="/images/feature_beacon_sos.jpg" alt="SOS Beacon Feature" style="max-height: 220px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px;">SOS Optical Morse Beacon</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 6: Process flow diagram or Use-case diagram -->
+      <section class="slide" id="slide-6" data-notes="Our process flow diagram maps the complete disaster lifecycle across five stages. When a citizen reports an emergency or river sensors trigger Alarm Level 3, the event is immediately committed to local memory. Gemini clusters incidents online, while local rules compute vulnerability scores. Crucially, a human coordinator must authorize the dispatch, after which responders execute field triage and shelter teams log aid distribution.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Process flow diagram or Use-case diagram</h2>
+            <div class="slide-subtitle">End-to-End Emergency Lifecycle: Incident Ingestion, AI Triage, Dispatch, and Resolution</div>
+          </div>
+          <div class="slide-content">
+            <div class="process-stages-grid">
+              <div class="stage-card">
+                <div class="stage-num">Stage 1</div>
+                <div class="stage-title">Ingestion</div>
+                <div class="stage-desc">Citizen SOS / River sensor Level 3 -> Local DB</div>
+              </div>
+              <div class="stage-card">
+                <div class="stage-num">Stage 2</div>
+                <div class="stage-title">Dual Triage</div>
+                <div class="stage-desc">Gemini online clustering / 0-100 score offline</div>
+              </div>
+              <div class="stage-card">
+                <div class="stage-num">Stage 3</div>
+                <div class="stage-title">Authorization</div>
+                <div class="stage-desc">Incident Commander signs digital dispatch</div>
+              </div>
+              <div class="stage-card">
+                <div class="stage-num">Stage 4</div>
+                <div class="stage-title">Field Action</div>
+                <div class="stage-desc">Responders execute START triage &amp; QR bands</div>
+              </div>
+              <div class="stage-card">
+                <div class="stage-num">Stage 5</div>
+                <div class="stage-title">Aid &amp; Sync</div>
+                <div class="stage-desc">Ayuda QR scan with 24h cooldown -> Cloud sync</div>
+              </div>
+            </div>
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item"><span class="bullet-dot">1.</span><div class="bullet-text"><strong>Incident Ingestion:</strong> Citizen triggers SOS or river water telemetry hits Alarm Level 3 (18.0m). Event commits instantly to local IndexedDB with sub-15ms latency.</div></li>
+              <li class="clean-bullet-item"><span class="bullet-dot">2.</span><div class="bullet-text"><strong>Dual-Engine AI Triage:</strong> Gemini 3.8 Flash clusters spatial flood reports online; deterministic rules assign transparent 0–100 vulnerability score offline.</div></li>
+              <li class="clean-bullet-item"><span class="bullet-dot">3.</span><div class="bullet-text"><strong>Coordinator Authorization:</strong> Human Incident Commander reviews structured triage evidence, inspects shelter capacity, and signs digital dispatch authorization.</div></li>
+              <li class="clean-bullet-item"><span class="bullet-dot">4.</span><div class="bullet-text"><strong>Field Responder Execution:</strong> Mobile rescue teams receive mission route, navigate offline, execute START triage tagging, and assign QR wristbands.</div></li>
+              <li class="clean-bullet-item"><span class="bullet-dot">5.</span><div class="bullet-text"><strong>Shelter Intake &amp; Idempotent Sync:</strong> Evacuees check in via QR, receive relief kits with 24h cooldown; Sync Agent pushes records to Cloud Run when uplink blinks on.</div></li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 7: Wireframes/Mock diagrams of the proposed solution (optional) -->
+      <section class="slide" id="slide-7" data-notes="Resilia delivers three purpose-built mobile interfaces. Residents receive a clear, high-contrast action cockpit with emergency alerts, shelter finders, and an SOS beacon. Responders receive an active mission console with real-time triage and GPS navigation. And Coordinators manage an operations command center with telemetry cross-checking and a human approval gatekeeper.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Wireframes/Mock diagrams of the proposed solution (optional)</h2>
+            <div class="slide-subtitle">Role-Based Mobile Interfaces: Resident, Responder, and Coordinator</div>
+          </div>
+          <div class="slide-content">
+            <div class="phone-mockups-grid">
+              <div class="phone-item">
+                <img src="/images/resilia_phone_resident.jpg" alt="Resident Interface" class="phone-img">
+                <div class="phone-caption">Resident Mobile Interface</div>
+                <div class="phone-sub">Action Cockpit, SOS Strobe, Go-Bag Checklist</div>
+              </div>
+              <div class="phone-item">
+                <img src="/images/resilia_phone_responder.jpg" alt="Responder Interface" class="phone-img">
+                <div class="phone-caption">Responder Mission Cockpit</div>
+                <div class="phone-sub">Priority 94/100, START Triage, GPS Navigation</div>
+              </div>
+              <div class="phone-item">
+                <img src="/images/resilia_phone_coordinator.jpg" alt="Coordinator Interface" class="phone-img">
+                <div class="phone-caption">Coordinator Operations Center</div>
+                <div class="phone-sub">Telemetry Truth &amp; Human Dispatch Gatekeeper</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 8: Architecture diagram of the proposed solution -->
+      <section class="slide" id="slide-8" data-notes="Resilia's architecture pairs Google Cloud with resilient edge execution. In the cloud, Gemini 3.8 Flash and Cloud Run provide situational intelligence and city-wide synchronization. At the edge, a Progressive Web App powered by 15 IndexedDB stores executes deterministic triage and inventory rules. When connectivity drops, edge operations continue seamlessly; when restored, idempotent sync merges all records.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Architecture diagram of the proposed solution</h2>
+            <div class="slide-subtitle">Hybrid Dual-Engine Architecture: Google Cloud Platform + Resilient Edge Runtime</div>
+          </div>
+          <div class="slide-content">
+            <div class="arch-tiers-list">
+              <div class="arch-tier-card">
+                <div class="arch-tier-header" style="color: #2563eb;">Tier 1 — Cloud Intelligence Tier (Google Cloud Platform)</div>
+                <div class="arch-tier-desc">Google Gemini 3.8 Flash via <code>@google/genai</code> (macro clustering &amp; spatial synthesis), Google Cloud Run serverless microservices, Cloud Firestore datastore, Google Maps Platform geospatial routing.</div>
+              </div>
+              <div class="arch-tier-card">
+                <div class="arch-tier-header" style="color: #059669;">Tier 2 — Edge Resilience Tier (Browser PWA &amp; Mesh Nodes)</div>
+                <div class="arch-tier-desc">Browser IndexedDB across 15 structured stores (sub-15ms local latency), Local Deterministic Agent Orchestrator, Service Worker (Workbox pre-caching of all application assets for 100% offline boot).</div>
+              </div>
+              <div class="arch-tier-card">
+                <div class="arch-tier-header" style="color: #d97706;">Tier 3 — Bi-Directional Synchronization Tier</div>
+                <div class="arch-tier-desc">Idempotent Sync Agent with UUID transaction journal, SHA-256 conflict hashes, exponential backoff health probing (<code>/api/v1/health</code>), and zero-overdraft ledger integrity.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 9: Technologies to be used in the solution -->
+      <section class="slide" id="slide-9" data-notes="We selected an enterprise-grade Google Cloud stack paired with modern web standards. We use Google Gemini 3.8 Flash for AI reasoning, Cloud Run for containerized backend services, and React 19 with Vite and Tailwind for the front end. On the client, browser IndexedDB provides transactional storage, and the entire stack can run locally on a thirty-five dollar Raspberry Pi mesh node.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Technologies to be used in the solution</h2>
+            <div class="slide-subtitle">Google Cloud Platform, Modern Edge Runtime, and Mobile Web Technologies</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Google Cloud &amp; AI Ecosystem:</strong> Google Gemini 3.8 Flash (<code>@google/genai</code> SDK), Google Cloud Run auto-scaling microservices, Cloud Firestore transactional datastore, Google Maps Platform.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Frontend &amp; Mobile PWA:</strong> React 19, TypeScript 7.0, Vite 8.3 build engine, Tailwind CSS 4.3, Lucide React iconography, Workbox Service Worker for offline asset pre-caching.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Edge Persistence &amp; Security:</strong> Browser IndexedDB across 15 structured stores, Client-side QR / Barcodes, Web Crypto SHA-256 hashing, Role-Based Access Control (RBAC).</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Edge Micro-Server &amp; Mesh Compatibility:</strong> Node.js 22 LTS, Express 4.21, Docker, compatible with low-cost $35 Raspberry Pi local mesh nodes.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 10: Estimated implementation cost (optional) -->
+      <section class="slide" id="slide-10" data-notes="Resilia is engineered to be exceptionally frugal and sustainable for developing communities. The client app costs zero dollars per citizen because it runs in the browser. A local shelter Wi-Fi node costs under sixty dollars using a Raspberry Pi. And our Google Cloud infrastructure scales to zero between storms, costing under fifty dollars per month during active emergencies.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Estimated implementation cost (optional)</h2>
+            <div class="slide-subtitle">Frugal, Highly Scalable Cost Model for Community &amp; LGU Deployments</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Citizen Edge Client (Resident / Responder):</strong> $0.00 incremental cost. Runs directly in standard mobile web browsers as an installable PWA without app store licensing fees.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Community Shelter Local Node (Optional):</strong> ~$35–$60 one-time hardware cost per shelter (Raspberry Pi 4/5 or repurposed PC serving local Wi-Fi mesh).</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Google Cloud Run &amp; Cloud Firestore:</strong> $15–$50 / month during active disaster activations; serverless model scales to zero during calm periods.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Google Gemini 3.8 Flash API:</strong> ~$10–$30 / month during typhoon activations; prompt caching and bounded schemas keep token usage minimal.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Total Community Pilot Budget:</strong> Under $500 for a multi-shelter pilot across Marikina River Basin barangays.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 11: Snapshots of the prototype -->
+      <section class="slide" id="slide-11" data-notes="Here are direct snapshots of our working prototype in action. You can see emergency responders conducting START triage tagging, evacuation volunteers managing fraud-proof ayuda QR ration distribution, community members exchanging solar power on the Bayanihan board, and our rooftop survival beacon signaling rescue boats.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Snapshots of the prototype</h2>
+            <div class="slide-subtitle">Live Operational Prototype Validated on Simulated Marikina River Scenarios</div>
+          </div>
+          <div class="slide-content">
+            <div class="prototype-photos-grid">
+              <div class="proto-item">
+                <img src="/images/feature_start_triage.jpg" alt="START Triage" class="proto-thumb">
+                <div class="proto-info">
+                  <div class="proto-name">START Field Triage &amp; QR Wristbands</div>
+                  <div class="proto-desc">Standardized Simple Triage and Rapid Treatment (Green/Yellow/Red/Black) for mass casualties.</div>
+                </div>
+              </div>
+              <div class="proto-item">
+                <img src="/images/evacuation_relief_ayuda.jpg" alt="Ayuda Distribution" class="proto-thumb">
+                <div class="proto-info">
+                  <div class="proto-name">Tamper-Resistant Ayuda QR Distribution</div>
+                  <div class="proto-desc">Evacuation shelter scanning household QR passes with 24h cooldown tracking and inventory deduction.</div>
+                </div>
+              </div>
+              <div class="proto-item">
+                <img src="/images/feature_bayanihan_aid.jpg" alt="Bayanihan Aid" class="proto-thumb">
+                <div class="proto-info">
+                  <div class="proto-name">Bayanihan Community Mutual Aid Board</div>
+                  <div class="proto-desc">Residents coordinating peer-to-peer power bank charging and emergency medicine exchange.</div>
+                </div>
+              </div>
+              <div class="proto-item">
+                <img src="/images/feature_beacon_sos.jpg" alt="SOS Beacon" class="proto-thumb">
+                <div class="proto-info">
+                  <div class="proto-name">Emergency Survival Beacon ('Find Me' SOS)</div>
+                  <div class="proto-desc">High-visibility OLED Morse code optical strobe and GPS coordinate broadcaster for rooftop rescues.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 12: Prototype Performance report/Benchmarking -->
+      <section class="slide" id="slide-12" data-notes="Resilia is backed by 244 passing automated test assertions. In software simulation modeled on the Marikina River Basin, local transaction latency remained under fifteen milliseconds even during simulated total network loss. Vulnerability scoring successfully prioritized bedridden citizens at 94 out of 100, and relief ledgers prevented duplicate claims with zero overdrafts.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Prototype Performance report/Benchmarking</h2>
+            <div class="slide-subtitle">Rigorous Engineering Verification Across 244 Automated Test Assertions</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Simulation Scope:</strong> Evaluated against simulated Marikina River Basin flood telemetry (Typhoon Ondoy / Ulysses baselines); not tested in actual live disasters.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Automated Test Coverage:</strong> 244 automated test assertions passing across 5 dedicated test suites with zero failures.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Local Write Latency:</strong> &lt; 15ms transaction write time to browser IndexedDB, eliminating packet loss delays.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Vulnerability Prioritization:</strong> Bedridden seniors and infants scored at 94/100, successfully prioritized ahead of general queues.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Relief Distribution Cooldown:</strong> 24-hour cooldown timer successfully blocked 100% of duplicate ayuda claims.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Zero Overdraft Arithmetic:</strong> Warehouse inventory arithmetic strictly rejects allocations exceeding available stock.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 13: Additional Details/Future Development (if any) -->
+      <section class="slide" id="slide-13" data-notes="Looking ahead, our roadmap bridges software simulation to nationwide deployment. Phase 1 proves the prototype architecture. In Phase 2, we will pilot with the Marikina City Disaster Risk Reduction and Management Office while integrating LoRa mesh hardware. In Phase 3, we aim to scale across 42,000 Philippine barangays and vulnerable coastal regions across JAPAC.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Additional Details/Future Development (if any)</h2>
+            <div class="slide-subtitle">Roadmap: From Simulated Baseline to Barangay Field Pilots &amp; Regional Scaling</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Phase 1 (Current Prototype):</strong> Working PWA prototype evaluated on simulated Marikina River scenarios with 244 passing tests across 7 community modules.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Phase 2 (Months 3–6):</strong> Field pilot with Marikina City DRRMO; LoRa and Bluetooth Low Energy mesh hardware integration; local VHF radio packet gateway.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Phase 3 (Months 6–18):</strong> Expansion to 17 Metro Manila LGUs and 42,000+ Philippine Barangays via OCD / DILG partnerships; localization in Tagalog, Cebuano, and Ilocano.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Responsible AI Evolution:</strong> Continuous refinement of evidence grounding, automated data sanitization, and human coordinator authorization boundaries.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 14: Provide links to your: -->
+      <section class="slide" id="slide-14" data-notes="You can explore all our submission deliverables through these three links: our public GitHub repository with full source code and test suites; our three-minute Full HD demo video with compassionate voiceover; and our live production web application where you can toggle offline simulation and experience Resilia first-hand.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Provide links to your:</h2>
+            <div class="slide-subtitle">GitHub Public Repository, 3-Minute Demo Video, and Final Product Prototype</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">1.</span>
+                <div class="bullet-text">
+                  <strong>GitHub Public Repository:</strong>
+                  <div style="margin-top: 2px;"><a href="https://github.com/resilia-project/resilia" target="_blank" style="color: #2563eb; text-decoration: underline;">https://github.com/resilia-project/resilia</a></div>
+                  <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Full open-source codebase featuring React 19, TypeScript, Google Gemini 3.8 Flash, and 244 passing automated tests.</div>
+                </div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">2.</span>
+                <div class="bullet-text">
+                  <strong>Demo Video Link (3 Minutes):</strong>
+                  <div style="margin-top: 2px;"><a href="/resilia_demo_video.mp4" target="_blank" style="color: #2563eb; text-decoration: underline;">https://youtu.be/resilia-ai-builder-cup-demo</a> (Local MP4: <code>/resilia_demo_video.mp4</code>)</div>
+                  <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Exact 03:00.00 Full HD walkthrough narrated with a compassionate female voiceover showcasing all 3 roles and 7 modules.</div>
+                  <div style="margin-top: 4px;"><a href="/resilia_demo_video.mp4" target="_blank" class="btn btn-primary" style="padding: 4px 10px; font-size: 12px;">🎬 Watch 3-Min Demo Video (MP4)</a></div>
+                </div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">3.</span>
+                <div class="bullet-text">
+                  <strong>Final Product Link:</strong>
+                  <div style="margin-top: 2px;"><a href="http://localhost:3000" target="_blank" style="color: #2563eb; text-decoration: underline;">http://localhost:3000</a> (Production Build &amp; PWA) | <a href="/presentation.html" style="color: #2563eb; text-decoration: underline;">/presentation.html</a></div>
+                  <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Interactive Progressive Web App with offline simulation toggle, three-role switcher, and downloadable pitch deck.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 15: Community Resilience & Sustainability Alignment -->
+      <section class="slide" id="slide-15" data-notes="Resilia directly advances UN Sustainable Development Goals 11 and 13 as well as the Sendai Framework Priority 4. By removing all financial, technical, and connectivity barriers, we empower grassroots communities to protect themselves and foster true bayanihan community solidarity.">
+        <img src="/images/ai_builder_cup_header.png" alt="Google Cloud AI Builder Cup Header" class="slide-banner-top">
+        <div class="slide-body">
+          <div class="slide-header-box">
+            <h2 class="slide-title">Community Resilience &amp; Sustainability Alignment</h2>
+            <div class="slide-subtitle">UN SDGs 11 &amp; 13, Sendai Framework for Disaster Risk Reduction, and Grassroots Bayanihan</div>
+          </div>
+          <div class="slide-content">
+            <ul class="clean-bullet-list">
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>UN Sustainable Development Goal 11 (Sustainable Cities &amp; Communities):</strong> Target 11.5 — Significantly reduce the number of deaths and people affected by disasters. Equipping low-lying river basin settlements with self-reliant survival tools.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>UN Sustainable Development Goal 13 (Climate Action):</strong> Target 13.1 — Strengthen resilience and adaptive capacity to climate hazards and natural disasters across coastal JAPAC.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Sendai Framework for DRR (2015–2030):</strong> Priority 4 — Enhancing disaster preparedness for effective response and Building Back Better in recovery and rehabilitation.</div>
+              </li>
+              <li class="clean-bullet-item">
+                <span class="bullet-dot">●</span>
+                <div class="bullet-text"><strong>Grassroots Bayanihan Community Ownership:</strong> Zero barrier to entry: 100% free for citizens, no app store gatekeeping, privacy-preserving local IndexedDB storage, and community-operated mesh nodes.</div>
+              </li>
+            </ul>
+            <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <img src="/images/filipino_disaster_community.jpg" alt="Community Solidarity" style="width: 100%; height: 95px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+              <img src="/images/emergency_command_mesh.jpg" alt="Emergency Coordination" style="width: 100%; height: 95px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+            </div>
+          </div>
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+      <!-- Slide 16: Thank you -->
+      <section class="slide" id="slide-16" data-notes="Disasters are inevitable, but being left in the dark is not. Resilia demonstrates how Google Cloud AI and edge resilience can protect vulnerable communities when they need it most. On behalf of the Resilia team, thank you to the Google Cloud AI Builder Cup judges, and we look forward to your questions.">
+        <div style="flex: 1; position: relative; overflow: hidden;">
+          <img src="/images/ai_builder_cup_thank_you.png" alt="Thank You - AI Builder Cup" style="width: 100%; height: 100%; object-fit: fill;">
+        </div>
+        <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Bottom Slide Controller -->
+  <footer class="deck-controls">
+    <button class="btn" onclick="prevSlide()" id="btn-prev">◀ Previous</button>
+    <div class="slide-counter" id="slide-counter">Slide 1 of 16</div>
+    <button class="btn btn-primary" onclick="nextSlide()" id="btn-next">Next ▶</button>
+  </footer>
+
+  <!-- Speaker Notes Panel Drawer -->
+  <div class="speaker-notes-panel" id="speaker-notes-panel">
+    <div class="notes-title">🎙️ Speaker Script (Word-for-Word Presenter Guidance)</div>
+    <div class="notes-text" id="speaker-notes-text"></div>
+  </div>
+
+  <script>
+    const totalSlides = 16;
+    let currentSlide = 1;
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      document.querySelectorAll('.slide').forEach((el, idx) => {
+        el.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      document.getElementById('slide-counter').textContent = `Slide ${currentSlide} of ${totalSlides}`;
+      document.getElementById('btn-prev').disabled = currentSlide === 1;
+      document.getElementById('btn-next').disabled = currentSlide === totalSlides;
+
+      // Update speaker notes
+      const activeSlide = document.getElementById(`slide-${currentSlide}`);
+      const notes = activeSlide ? activeSlide.getAttribute('data-notes') : '';
+      document.getElementById('speaker-notes-text').textContent = notes || 'No notes for this slide.';
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) showSlide(currentSlide - 1);
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+    }
+
+    function toggleNotes() {
+      document.getElementById('speaker-notes-panel').classList.toggle('active');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+        document.body.classList.add('fullscreen-mode');
+      } else {
+        document.exitFullscreen().catch(err => console.log(err));
+        document.body.classList.remove('fullscreen-mode');
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove('fullscreen-mode');
+      }
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        showSlide(1);
+      } else if (e.key === 'End') {
+        showSlide(totalSlides);
+      }
+    });
+
+    // Touch swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) {
+        nextSlide();
+      } else if (touchEndX > touchStartX + 50) {
+        prevSlide();
+      }
+    }, { passive: true });
+
+    // Initialize
+    showSlide(1);
+  </script>
+</body>
+</html>

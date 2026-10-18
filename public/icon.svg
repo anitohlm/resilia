@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <!-- Background with Safe Margin -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)" />
+  
+  <!-- Outer Shield Emblem -->
+  <path d="M256 70 L390 120 C390 260 256 380 256 420 C256 380 122 260 122 120 Z" fill="none" stroke="url(#shieldGrad)" stroke-width="22" stroke-linejoin="round" />
+  
+  <!-- Resilience Beacon & Connectivity Waveform -->
+  <path d="M190 220 Q256 180 322 220" fill="none" stroke="#f0fdf4" stroke-width="16" stroke-linecap="round" />
+  <path d="M215 260 Q256 230 297 260" fill="none" stroke="#a7f3d0" stroke-width="14" stroke-linecap="round" />
+  
+  <!-- Central Resilient Core -->
+  <circle cx="256" cy="305" r="28" fill="#34d399" />
+  <circle cx="256" cy="305" r="14" fill="#ffffff" />
+  
+  <!-- Shelter Apex -->
+  <polygon points="256,120 310,165 202,165" fill="#f0fdf4" />
+</svg>

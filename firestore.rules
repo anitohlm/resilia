@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function: Check if user is an authorized disaster coordinator
+    function isCoordinator() {
+      return isAuthenticated() && request.auth.token.role == 'COORDINATOR';
+    }
+
+    // Helper function: Check if user is a designated responder
+    function isResponder() {
+      return isAuthenticated() && (request.auth.token.role == 'RESPONDER' || isCoordinator());
+    }
+
+    // Users: Owner can read profile; Coordinators can read for disaster operations
+    // Normal users can create their profile or update non-role fields (name, phone, location); role changes require Coordinator
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isCoordinator());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (
+        isCoordinator() || 
+        (request.auth.uid == userId && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])))
+      );
+    }
+
+    // Test connection check
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Shelters: Publicly readable for emergency safety; coordinator modifiable
+    match /shelters/{shelterId} {
+      allow read: if true;
+      allow write: if isCoordinator();
+    }
+
+    // Resources: Publicly readable; coordinator modifiable
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow write: if isCoordinator();
+    }
+
+    // Incidents: Any authenticated user or anonymous resident can report; only coordinator can verify
+    match /incidents/{incidentId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isCoordinator() || (isAuthenticated() && resource.data.reporterId == request.auth.uid);
+    }
+
+    // Assistance Requests: Private resident vulnerability details protected; only creator or coordinator can read
+    match /assistanceRequests/{requestId} {
+      allow read: if isCoordinator() || (isAuthenticated() && resource.data.residentId == request.auth.uid);
+      allow create: if true;
+      allow update: if isCoordinator();
+    }
+
+    // Missions: Responders and coordinators can read; only coordinator can approve proposals
+    match /missions/{missionId} {
+      allow read: if isResponder();
+      allow create: if isCoordinator();
+      allow update: if isResponder();
+    }
+
+    // Sync Events: Durable append-only event stream
+    match /syncEvents/{eventId} {
+      allow create: if true;
+      allow read: if isCoordinator();
+    }
+
+    // Audit entries: Strictly append-only
+    match /auditEntries/{auditId} {
+      allow read: if isCoordinator();
+      allow create: if true;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,870 @@
+/**
+ * Resilia Philippine Demo Seed Dataset
+ *
+ * Setting: Barangay Tumana & Barangay Malanday, Marikina City (Metro Manila, Philippines)
+ * Coordinates: 14.650° N, 121.100° E (Flood prone valley along Marikina River)
+ *
+ * Attribution & Provenance:
+ * - Basemap coordinates and facility locations: OpenStreetMap contributors (ODbL)
+ * - Warning levels and alert structure: Marikina CDRRMO public flood warning system
+ * - Incident records & scenario payloads: Synthetic disaster response demonstration dataset (labeled DEMO DATA)
+ */
+
+import {
+  Alert,
+  AssistanceRequest,
+  Community,
+  Incident,
+  InventoryMovement,
+  Mission,
+  Report,
+  Resource,
+  Shelter,
+  User,
+  Verification,
+  TriageRecord,
+  MissingKinRecord,
+  MutualAidPost,
+  FloodExposureRecord,
+  HouseholdClaimCard,
+} from '../types';
+import { localDB, STORES } from '../services/offline/db';
+import { LOCAL_EMERGENCY_KNOWLEDGE } from '../services/offline/localKnowledge';
+
+export const DEMO_COMMUNITY: Community = {
+  id: 'comm_marikina_tumana_malanday',
+  name: 'Barangay Tumana & Malanday Resilience Cluster',
+  municipality: 'Marikina City',
+  region: 'National Capital Region (NCR), Philippines',
+  population: 74200,
+  riverWaterLevelMeters: 16.8, // Level 2 Warning Alarm
+  riverAlertLevel: 2,
+  weatherCondition: 'Heavy Continuous Monsoon Rain (Habagat)',
+  rainfallStatus: 'Red Rainfall Advisory (PAGASA)',
+  powerStatus: 'PARTIAL_OUTAGE',
+  commsStatus: 'DEGRADED_CELLULAR',
+  lastUpdated: new Date().toISOString(),
+  source: 'Marikina City DRRMO Live Monitoring Station (Simulated Demo Stream)',
+};
+
+export const DEMO_USERS: User[] = [
+  {
+    id: 'user_coordinator_maria',
+    name: 'Capt. Maria Santos',
+    role: 'COORDINATOR',
+    email: 'maria.santos@marikina.gov.ph',
+    phone: '+63 917 555 0101',
+    locationName: 'Marikina City Disaster Operations Center (CDRRMO)',
+    assignedZone: 'Sector 2 (Tumana-Malanday)',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'user_responder_juan',
+    name: 'Officer Juan dela Cruz',
+    role: 'RESPONDER',
+    email: 'juan.rescue@marikina161.ph',
+    phone: '+63 918 555 0202',
+    locationName: 'Marikina Rescue 161 Base Station',
+    assignedZone: 'Tumana Riverbank North',
+    status: 'ON_DUTY',
+  },
+  {
+    id: 'user_resident_lola_rosa',
+    name: 'Lola Rosa Macaraeg (Senior Citizen)',
+    role: 'RESIDENT',
+    email: 'rosa.macaraeg@resilia.local',
+    phone: '+63 920 555 0303',
+    locationName: 'Purok 4, Tumana Dike Side',
+    status: 'ACTIVE',
+  },
+  {
+    id: 'user_resident_carlo',
+    name: 'Carlo Mendoza (Family of 5)',
+    role: 'RESIDENT',
+    email: 'carlo.mendoza@resilia.local',
+    phone: '+63 922 555 0404',
+    locationName: 'Malanday Riverside St.',
+    status: 'ACTIVE',
+  },
+];
+
+export const DEMO_SHELTERS: Shelter[] = [
+  {
+    id: 'sh_malanday_elem',
+    name: 'Malanday Elementary School Evacuation Center',
+    locationName: 'M.H. Del Pilar St., Brgy. Malanday',
+    lat: 14.6592,
+    lng: 121.0965,
+    capacityTotal: 850,
+    capacityCurrent: 620,
+    isAccessibleWheelchair: true,
+    hasBackupPower: true,
+    hasMedicalClinic: true,
+    hasPotableWater: true,
+    // Special Needs Matrix
+    hasLactatingStation: true,
+    hasPetFriendlyZone: true,
+    hasMedicalOxygen: true,
+    hasGroundFloorAccess: true,
+    pwdCapacity: 40,
+    pwdCurrent: 28,
+    petCapacity: 30,
+    petCurrent: 14,
+    contactPerson: 'Principal Elena Ramos',
+    contactPhone: '+63 919 123 4567',
+    status: 'OPEN',
+    verifiedAt: new Date(Date.now() - 3600000).toISOString(),
+    verifiedBy: 'Capt. Maria Santos (Coordinator)',
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'sh_bulelak_gym',
+    name: 'Bulelak Covered Court Evacuation Facility',
+    locationName: 'Bulelak St., Brgy. Malanday',
+    lat: 14.6615,
+    lng: 121.0988,
+    capacityTotal: 300,
+    capacityCurrent: 285,
+    isAccessibleWheelchair: true,
+    hasBackupPower: false,
+    hasMedicalClinic: false,
+    hasPotableWater: true,
+    // Special Needs Matrix
+    hasLactatingStation: false,
+    hasPetFriendlyZone: true,
+    hasMedicalOxygen: false,
+    hasGroundFloorAccess: true,
+    pwdCapacity: 15,
+    pwdCurrent: 12,
+    petCapacity: 20,
+    petCurrent: 18,
+    contactPerson: 'Kagawad Rey Tolentino',
+    contactPhone: '+63 917 234 5678',
+    status: 'NEAR_CAPACITY',
+    verifiedAt: new Date(Date.now() - 7200000).toISOString(),
+    verifiedBy: 'MCDRRMO Inspection Team',
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'sh_concepcion_elem',
+    name: 'Concepcion Integrated School Evacuation Hub',
+    locationName: 'J. Molina St., Brgy. Concepcion Uno',
+    lat: 14.654,
+    lng: 121.108,
+    capacityTotal: 1200,
+    capacityCurrent: 450,
+    isAccessibleWheelchair: true,
+    hasBackupPower: true,
+    hasMedicalClinic: true,
+    hasPotableWater: true,
+    // Special Needs Matrix
+    hasLactatingStation: true,
+    hasPetFriendlyZone: false,
+    hasMedicalOxygen: true,
+    hasGroundFloorAccess: true,
+    pwdCapacity: 60,
+    pwdCurrent: 19,
+    petCapacity: 0,
+    petCurrent: 0,
+    contactPerson: 'Dr. Arthur Valenzuela',
+    contactPhone: '+63 928 345 6789',
+    status: 'OPEN',
+    verifiedAt: new Date(Date.now() - 1800000).toISOString(),
+    verifiedBy: 'Capt. Maria Santos (Coordinator)',
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'sh_marikina_sports_center',
+    name: 'Marikina Sports Center Complex (Secondary Mega-Hub)',
+    locationName: 'Sumulong Highway, Marikina City',
+    lat: 14.636,
+    lng: 121.099,
+    capacityTotal: 2500,
+    capacityCurrent: 310,
+    isAccessibleWheelchair: true,
+    hasBackupPower: true,
+    hasMedicalClinic: true,
+    hasPotableWater: true,
+    // Special Needs Matrix
+    hasLactatingStation: true,
+    hasPetFriendlyZone: true,
+    hasMedicalOxygen: true,
+    hasGroundFloorAccess: true,
+    pwdCapacity: 120,
+    pwdCurrent: 35,
+    petCapacity: 80,
+    petCurrent: 22,
+    contactPerson: 'Dep. Dir. Ramon Gomez',
+    contactPhone: '+63 915 456 7890',
+    status: 'OPEN',
+    verifiedAt: new Date(Date.now() - 5400000).toISOString(),
+    verifiedBy: 'City DRRM Command',
+    lastUpdated: new Date().toISOString(),
+  },
+];
+
+export const DEMO_RESOURCES: Resource[] = [
+  {
+    id: 'res_water_malanday',
+    name: 'Purified Potable Water (5-Gallon Bottles)',
+    category: 'WATER',
+    quantity: 140,
+    unit: '5-gal containers',
+    locationId: 'sh_malanday_elem',
+    locationName: 'Malanday Elementary School',
+    status: 'AVAILABLE',
+    consumptionRatePerDay: 50,
+    estimatedDaysRemaining: 2.8,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_food_malanday',
+    name: 'Emergency Ready-to-Eat Food Packs (DWD Standard)',
+    category: 'FOOD',
+    quantity: 380,
+    unit: 'family packs',
+    locationId: 'sh_malanday_elem',
+    locationName: 'Malanday Elementary School',
+    status: 'AVAILABLE',
+    consumptionRatePerDay: 120,
+    estimatedDaysRemaining: 3.1,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_rescue_boat_1',
+    name: 'Rescue Rubber Boat with 25HP Outboard Motor',
+    category: 'TRANSPORT',
+    quantity: 2,
+    unit: 'motorized boats',
+    locationId: 'sh_malanday_elem',
+    locationName: 'Rescue 161 Sub-station Malanday',
+    status: 'AVAILABLE',
+    consumptionRatePerDay: 0,
+    estimatedDaysRemaining: 99,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_high_clearance_truck',
+    name: '6x6 High-Clearance Amphibious Military Truck',
+    category: 'TRANSPORT',
+    quantity: 1,
+    unit: '6x6 transport truck',
+    locationId: 'sh_marikina_sports_center',
+    locationName: 'Marikina Sports Center',
+    status: 'AVAILABLE',
+    consumptionRatePerDay: 0,
+    estimatedDaysRemaining: 99,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_generator_50kva',
+    name: '50 kVA Diesel Emergency Generator',
+    category: 'GENERATOR',
+    quantity: 1,
+    unit: 'diesel generator',
+    locationId: 'sh_malanday_elem',
+    locationName: 'Malanday Elementary School',
+    status: 'AVAILABLE',
+    consumptionRatePerDay: 40,
+    estimatedDaysRemaining: 4.5,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_insulin_cold_storage',
+    name: 'Pediatric Oral Rehydration & Chronic Maintenance Meds',
+    category: 'MEDICINE',
+    quantity: 18,
+    unit: 'emergency medical kits',
+    locationId: 'sh_malanday_elem',
+    locationName: 'Malanday Health Center Triage',
+    status: 'LOW',
+    consumptionRatePerDay: 10,
+    estimatedDaysRemaining: 1.8,
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'res_water_bulelak',
+    name: 'Purified Water Supplies (Bulelak)',
+    category: 'WATER',
+    quantity: 25,
+    unit: '5-gal containers',
+    locationId: 'sh_bulelak_gym',
+    locationName: 'Bulelak Covered Court',
+    status: 'LOW',
+    consumptionRatePerDay: 35,
+    estimatedDaysRemaining: 0.7, // Shortage alert!
+    lastUpdated: new Date().toISOString(),
+  },
+];
+
+export const DEMO_INCIDENTS: Incident[] = [
+  {
+    id: 'inc_west_valley_fault_earthquake',
+    type: 'EARTHQUAKE',
+    title: 'PEIS Intensity VII Tremor: Wall Collapse & Road Fissure on Tumana Perimeter',
+    description: 'Ground rupture and deep pavement cracks along river dike after M6.2 tremor. Perimeter masonry wall partially collapsed, 2 elderly residents trapped inside residential compound.',
+    lat: 14.653,
+    lng: 121.104,
+    locationName: 'Purok 2, West Valley Fault Trace / Tumana',
+    reporterId: 'user_resident_carlo',
+    reporterName: 'Carlo Mendoza',
+    reporterRole: 'RESIDENT',
+    severity: 'CRITICAL',
+    status: 'REPORTED',
+    earthquakeIntensity: 7,
+    structuralDamageLevel: 'PARTIAL_COLLAPSE',
+    trappedPersonsCount: 2,
+    aftershockWarning: true,
+    assignedResponderId: 'user_responder_juan',
+    assignedResponderName: 'Officer Juan dela Cruz',
+    assignedAt: new Date(Date.now() - 900000).toISOString(),
+    responderStatus: 'DISPATCHED',
+    responderNotes: 'Coordinator Capt. Maria Santos dispatched Rescue 161 for urgent trapped citizen extraction.',
+    createdAt: new Date(Date.now() - 1500000).toISOString(),
+    supportingReportsCount: 3,
+    contradictingReportsCount: 0,
+  },
+  {
+    id: 'inc_tumana_dike_overtopping',
+    type: 'FLOOD',
+    title: 'Flood Overtopping at Purok 4 Tumana Dike Side',
+    description: 'River water spilling over secondary retaining wall. Waist-deep floodwater (approx 110cm) entering residential lane.',
+    lat: 14.658,
+    lng: 121.102,
+    locationName: 'Purok 4, Tumana Dike Access Road',
+    reporterId: 'user_resident_lola_rosa',
+    reporterName: 'Lola Rosa Macaraeg',
+    reporterRole: 'RESIDENT',
+    severity: 'HIGH',
+    status: 'VERIFIED',
+    floodDepthCm: 110,
+    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
+    assignedResponderId: 'team_boat_alpha',
+    assignedResponderName: 'Rescue Boat Unit Alpha',
+    assignedAt: new Date(Date.now() - 1800000).toISOString(),
+    responderStatus: 'EN_ROUTE',
+    responderNotes: 'Assigned to boat team for perimeter evacuation.',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    verifiedAt: new Date(Date.now() - 1800000).toISOString(),
+    verifiedBy: 'Capt. Maria Santos',
+    verificationRationale: 'Confirmed by Barangay Tumana Tanod patrol and Rescue 161 drone sweep.',
+    supportingReportsCount: 4,
+    contradictingReportsCount: 0,
+  },
+  {
+    id: 'inc_tumana_bridge_roadblock',
+    type: 'ROAD_BLOCKED',
+    title: 'Conflicting Status: Tumana Bridge Approach Road Blockage',
+    description: 'Submerged debris and stranded minivan reported near western approach. Impassable for light vehicles.',
+    lat: 14.655,
+    lng: 121.1,
+    locationName: 'Tumana Bridge West Approach (J.P. Rizal)',
+    reporterId: 'user_resident_lola_rosa',
+    reporterName: 'Lola Rosa Macaraeg',
+    reporterRole: 'RESIDENT',
+    severity: 'CRITICAL',
+    status: 'REPORTED',
+    floodDepthCm: 75,
+    createdAt: new Date(Date.now() - 1200000).toISOString(),
+    supportingReportsCount: 2,
+    contradictingReportsCount: 1, // Corroborated with contradiction!
+  },
+  {
+    id: 'inc_bulelak_power_transformer',
+    type: 'POWER_OUTAGE',
+    title: 'Blown Transformer on Bulelak Alley 3',
+    description: 'Electric transformer spark followed by power failure. Live wires hanging close to flooded gutter.',
+    lat: 14.662,
+    lng: 121.097,
+    locationName: 'Alley 3, Brgy. Malanday',
+    reporterId: 'user_resident_carlo',
+    reporterName: 'Carlo Mendoza',
+    reporterRole: 'RESIDENT',
+    severity: 'HIGH',
+    status: 'VERIFIED',
+    photoUrl: 'https://images.unsplash.com/photo-1542385151-efd9000785a0?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    verifiedAt: new Date(Date.now() - 6000000).toISOString(),
+    verifiedBy: 'Capt. Maria Santos',
+    verificationRationale: 'Meralco emergency dispatch notified; power isolated on grid sub-switch.',
+    supportingReportsCount: 3,
+    contradictingReportsCount: 0,
+  },
+  {
+    id: 'inc_volcano_ashfall_warning',
+    type: 'VOLCANO_ERUPTION',
+    title: 'PHIVOLCS Alert Level 3: Volcanic Ashfall & Hazardous Plume Advisory',
+    description: 'Volcanic ashfall accumulation (approx 4mm) on rooftops and roadways with sulfur odor. Low visibility along highway; respiratory masks distributed by EMS teams.',
+    lat: 14.665,
+    lng: 121.106,
+    locationName: 'Sector 5 Highlands / Malanday Boundary',
+    reporterId: 'user_resident_carlo',
+    reporterName: 'Carlo Mendoza',
+    reporterRole: 'RESIDENT',
+    severity: 'CRITICAL',
+    status: 'VERIFIED',
+    volcanoAlertLevel: 3,
+    ashfallSeverity: 'HEAVY',
+    assignedResponderId: 'team_ems_mobile',
+    assignedResponderName: 'CDRRMO Rapid Medical EMS Team',
+    assignedAt: new Date(Date.now() - 3600000).toISOString(),
+    responderStatus: 'ON_SCENE',
+    responderNotes: 'Distributing N95 masks and establishing air filtration at shelter intake.',
+    createdAt: new Date(Date.now() - 5400000).toISOString(),
+    verifiedAt: new Date(Date.now() - 3600000).toISOString(),
+    verifiedBy: 'Capt. Maria Santos',
+    verificationRationale: 'Confirmed by PHIVOLCS DOST seismic alert bulletin and local barangay observation post.',
+    supportingReportsCount: 5,
+    contradictingReportsCount: 0,
+  },
+];
+
+export const DEMO_REPORTS: Report[] = [
+  {
+    id: 'rep_tumana_bridge_1',
+    incidentId: 'inc_tumana_bridge_roadblock',
+    reporterId: 'user_responder_juan',
+    reporterName: 'Officer Juan dela Cruz',
+    reporterRole: 'RESPONDER',
+    reportType: 'INITIAL',
+    observation: 'Western approach impassable for sedans/tricycles due to 75cm floodwater and stranded debris.',
+    roadStatus: 'IMPASSABLE',
+    floodDepthCm: 75,
+    lat: 14.655,
+    lng: 121.1,
+    timestamp: new Date(Date.now() - 1200000).toISOString(),
+  },
+  {
+    id: 'rep_tumana_bridge_2',
+    incidentId: 'inc_tumana_bridge_roadblock',
+    reporterId: 'user_resident_carlo',
+    reporterName: 'Carlo Mendoza',
+    reporterRole: 'RESIDENT',
+    reportType: 'CONTRADICTION',
+    observation: 'High clearance jeepneys and 6x6 trucks are still forging through the elevated center island.',
+    roadStatus: 'LIGHT_VEHICLES_ONLY',
+    floodDepthCm: 50,
+    lat: 14.6552,
+    lng: 121.1005,
+    timestamp: new Date(Date.now() - 600000).toISOString(),
+  },
+];
+
+export const DEMO_ASSISTANCE_REQUESTS: AssistanceRequest[] = [
+  {
+    id: 'req_lola_rosa_evac',
+    residentId: 'user_resident_lola_rosa',
+    residentName: 'Lola Rosa Macaraeg',
+    contactPhone: '+63 920 555 0303',
+    peopleCount: 3,
+    vulnerabilityNeeds: {
+      elderlyCount: 1, // Lola Rosa is 76 years old
+      infantCount: 0,
+      wheelchairUser: true,
+      bedridden: false,
+      medicalNeeds: ['Hypertension medication maintenance', 'Mobility wheelchair assist'],
+    },
+    category: 'EVACUATION',
+    description: 'Water has reached the first floor steps. Lola Rosa is in a wheelchair and cannot cross flooded lane without stretcher or boat.',
+    locationName: 'Purok 4, House 12-B, Tumana Dike Side',
+    lat: 14.6582,
+    lng: 121.1018,
+    priority: 'CRITICAL',
+    priorityScore: 95,
+    priorityRationale: [
+      'Elderly resident (age 76+)',
+      'Wheelchair user with zero self-mobility through flood',
+      'Location inside active flood overtopping zone (110cm depth)',
+      'Marikina River Alert Level 2 (Pre-emptive/Forced Evac Threshold)',
+    ],
+    status: 'TRIAGED',
+    createdAt: new Date(Date.now() - 1800000).toISOString(),
+    updatedAt: new Date(Date.now() - 1200000).toISOString(),
+    assignedMissionId: 'mis_rescue_lola_rosa',
+  },
+  {
+    id: 'req_carlo_water',
+    residentId: 'user_resident_carlo',
+    residentName: 'Carlo Mendoza',
+    contactPhone: '+63 922 555 0404',
+    peopleCount: 5,
+    vulnerabilityNeeds: {
+      elderlyCount: 0,
+      infantCount: 1, // 8-month-old infant
+      wheelchairUser: false,
+      bedridden: false,
+      medicalNeeds: ['Clean water for baby milk formula'],
+    },
+    category: 'WATER',
+    description: 'Tap water is muddy and brown. We have an 8-month-old baby and need clean drinking water for baby formula.',
+    locationName: 'Malanday Riverside St., House 88',
+    lat: 14.6605,
+    lng: 121.095,
+    priority: 'HIGH',
+    priorityScore: 82,
+    priorityRationale: [
+      'Infant present (8 months old)',
+      'No safe potable water for formula preparation',
+      'Local tap water brown from flood intrusion',
+    ],
+    status: 'PENDING',
+    createdAt: new Date(Date.now() - 900000).toISOString(),
+    updatedAt: new Date(Date.now() - 900000).toISOString(),
+  },
+];
+
+export const DEMO_MISSIONS: Mission[] = [
+  {
+    id: 'mis_rescue_lola_rosa',
+    title: 'Emergency Evacuation: Lola Rosa (Wheelchair-Accessible Transport)',
+    assistanceRequestId: 'req_lola_rosa_evac',
+    priority: 'CRITICAL',
+    rationale: 'High flood level in Purok 4 with wheelchair-bound elderly resident. Requires motorized rubber boat or high-clearance truck and transport to wheelchair-accessible Malanday Elementary School.',
+    pickupLocation: 'Purok 4, House 12-B, Tumana Dike Side (Lat: 14.6582, Lng: 121.1018)',
+    destinationLocation: 'Malanday Elementary School Evacuation Center (Ground-Floor Ramp)',
+    lat: 14.6582,
+    lng: 121.1018,
+    requestedAssistance: 'Wheelchair extraction boat dispatch + family transfer',
+    vulnerabilitySummary: '1 Elderly (76 y/o), Wheelchair user, 2 family members',
+    assignedResponderId: 'user_responder_juan',
+    assignedResponderName: 'Officer Juan dela Cruz',
+    assignedVehicleType: 'Motorized Rubber Boat 161-B',
+    targetShelterId: 'sh_malanday_elem',
+    targetShelterName: 'Malanday Elementary School Evacuation Center',
+    status: 'APPROVED',
+    statusHistory: [
+      {
+        status: 'PROPOSED',
+        actorId: 'system_orchestrator',
+        actorName: 'Resilia Needs & Coordination Agent',
+        timestamp: new Date(Date.now() - 1500000).toISOString(),
+        note: 'AI proposal matched request with Rescue 161 boat and Malanday School wheelchair ramp',
+      },
+      {
+        status: 'APPROVED',
+        actorId: 'user_coordinator_maria',
+        actorName: 'Capt. Maria Santos',
+        timestamp: new Date(Date.now() - 900000).toISOString(),
+        note: 'Approved for immediate dispatch. Caution: debris along approach.',
+      },
+    ],
+    evidenceRecordIds: ['req_lola_rosa_evac', 'inc_tumana_dike_overtopping', 'sh_malanday_elem'],
+    requiresHumanApproval: true,
+    createdAt: new Date(Date.now() - 1500000).toISOString(),
+    updatedAt: new Date(Date.now() - 900000).toISOString(),
+  },
+];
+
+export const DEMO_ALERTS: Alert[] = [
+  {
+    id: 'alert_marikina_level_2',
+    title: 'MARIKINA RIVER: 2ND ALARM (WARNING LEVEL 16.8 METERS)',
+    severity: 'WARNING',
+    message: 'Water level reached 16.8 meters at 05:45 AM. Pre-emptive evacuation is underway for all low-lying areas of Tumana, Malanday, and Nangka. Move to designated barangay evacuation centers.',
+    source: 'Marikina City Disaster Risk Reduction & Management Office (MCDRRMO)',
+    issuedAt: new Date(Date.now() - 3600000).toISOString(),
+    expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    active: true,
+    isExercise: true,
+  },
+  {
+    id: 'alert_pagasa_habagat',
+    title: 'PAGASA RED RAINFALL ADVISORY #14',
+    severity: 'CRITICAL',
+    message: 'Torrential rains (greater than 30mm/hr) expected over Metro Manila. Flooding is threatening in low-lying areas and near river channels.',
+    source: 'DOST-PAGASA Weather Division',
+    issuedAt: new Date(Date.now() - 7200000).toISOString(),
+    expiresAt: new Date(Date.now() + 43200000).toISOString(),
+    active: true,
+    isExercise: true,
+  },
+  {
+    id: 'alert_typhoon_pepito',
+    title: 'PAGASA TCWS #3: SUPER TYPHOON PEPITO APPROACHING NCR / VALLEY',
+    severity: 'WARNING',
+    message: 'Super Typhoon Pepito is tracking west-northwest with sustained winds of 195 km/h. Expected landfall in approximately 2 days. Riverbanks and low-lying puroks must execute pre-landfall preparations and secure 72-hour Go-Bags.',
+    source: 'PAGASA Weather Division & CDRRMO Incident Command',
+    issuedAt: new Date(Date.now() - 1800000).toISOString(),
+    expiresAt: new Date(Date.now() + 172800000).toISOString(),
+    active: true,
+    isExercise: true,
+    disasterType: 'TYPHOON',
+    disasterName: 'Super Typhoon Pepito (Man-yi)',
+    daysUntilLandfall: 2,
+    expectedLandfall: 'Friday evening (approx. 48 hours)',
+    signalLevel: 3,
+    affectedZones: ['Barangay Tumana', 'Malanday Lowlands', 'Nangka Riverbanks', 'Marikina Delta'],
+    preparations: [
+      'Inspect and pack 72-hour family Go-Bag (drinking water, ready-to-eat food, meds, cash)',
+      'Anchor loose roof tin sheets, outdoor signage, and clear rainwater downspouts',
+      'Fully charge all mobile devices, powerbanks, rechargeable emergency lights, and radios',
+      'Store minimum 1 gallon of potable drinking water per person per day (3-day supply)',
+      'Riverside puroks review pre-emptive evacuation routes to designated school gyms',
+    ],
+  },
+];
+
+export const DEMO_TRIAGE_RECORDS: TriageRecord[] = [
+  {
+    id: 'tri_2026_demo_01',
+    tagCode: 'TRIAGE-2026-X89F',
+    category: 'IMMEDIATE',
+    victimName: 'Mang Eduardo Santos (Hypothermia / Severe Distress)',
+    approxAgeGroup: 'ELDERLY',
+    gender: 'MALE',
+    canWalk: false,
+    spontaneousBreathing: true,
+    respiratoryRateBpm: 34,
+    radialPulsePresent: false,
+    capillaryRefillSeconds: 3.5,
+    mentalStatus: 'CONFUSED',
+    avpuScore: 'VERBAL',
+    injuriesDescription: 'Trapped on rooftop for 8 hours, deep laceration on lower leg from floating debris, hypothermic.',
+    destinationFacility: 'Amang Rodriguez Memorial Medical Center (ER)',
+    responderId: 'user_responder_juan',
+    responderName: 'Officer Juan dela Cruz',
+    locationName: 'Purok 4 Dike St., Tumana',
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+    status: 'EN_ROUTE',
+    offlineGenerated: true,
+  },
+  {
+    id: 'tri_2026_demo_02',
+    tagCode: 'TRIAGE-2026-Y42K',
+    category: 'DELAYED',
+    victimName: 'Aling Remedios Mendoza',
+    approxAgeGroup: 'ADULT',
+    gender: 'FEMALE',
+    canWalk: false,
+    spontaneousBreathing: true,
+    respiratoryRateBpm: 22,
+    radialPulsePresent: true,
+    capillaryRefillSeconds: 1.5,
+    mentalStatus: 'FOLLOWS_COMMANDS',
+    avpuScore: 'ALERT',
+    injuriesDescription: 'Closed fracture of left ankle while descending attic ladder; splinted on boat.',
+    destinationFacility: 'Malanday Elementary Evacuation Clinic',
+    responderId: 'user_responder_juan',
+    responderName: 'Officer Juan dela Cruz',
+    locationName: 'Malanday Riverside St.',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    status: 'ADMITTED_SHELTER',
+    offlineGenerated: true,
+  },
+  {
+    id: 'tri_2026_demo_03',
+    tagCode: 'TRIAGE-2026-G19M',
+    category: 'MINOR',
+    victimName: 'Carlo Mendoza Jr. (Age 9)',
+    approxAgeGroup: 'CHILD',
+    gender: 'MALE',
+    canWalk: true,
+    spontaneousBreathing: true,
+    respiratoryRateBpm: 20,
+    radialPulsePresent: true,
+    capillaryRefillSeconds: 1.0,
+    mentalStatus: 'FOLLOWS_COMMANDS',
+    avpuScore: 'ALERT',
+    injuriesDescription: 'Minor abrasions on forearms and knees, alert and ambulatory.',
+    destinationFacility: 'Malanday Elementary Evacuation Center',
+    responderId: 'user_responder_juan',
+    responderName: 'Officer Juan dela Cruz',
+    locationName: 'Malanday Riverside St.',
+    timestamp: new Date(Date.now() - 5400000).toISOString(),
+    status: 'FIELD_TRIAGED',
+    offlineGenerated: true,
+  },
+];
+
+export const DEMO_HOUSEHOLD_CARDS: HouseholdClaimCard[] = [
+  {
+    id: 'hhd_demo_01',
+    claimCode: 'AYUDA-FAM-TUM-042',
+    householdHeadName: 'Carlo Mendoza',
+    familyMembersCount: 5,
+    vulnerableMembers: {
+      infants: 1,
+      seniors: 1,
+      pwd: 1,
+      lactating: 1,
+    },
+    contactPhone: '+63 922 555 0404',
+    purokAddress: 'Purok 3, Riverside St., Brgy. Malanday',
+    evacuationCenterId: 'sh_malanday_elem',
+    qrPayload: '{"code":"AYUDA-FAM-TUM-042","head":"Carlo Mendoza","pax":5,"purok":"Purok 3 Malanday"}',
+    registeredAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'hhd_demo_02',
+    claimCode: 'AYUDA-FAM-TUM-089',
+    householdHeadName: 'Lola Rosa Macaraeg',
+    familyMembersCount: 3,
+    vulnerableMembers: {
+      infants: 0,
+      seniors: 2,
+      pwd: 1,
+      lactating: 0,
+    },
+    contactPhone: '+63 920 555 0303',
+    purokAddress: 'Purok 4, Tumana Dike Side',
+    evacuationCenterId: 'sh_malanday_elem',
+    qrPayload: '{"code":"AYUDA-FAM-TUM-089","head":"Lola Rosa Macaraeg","pax":3,"purok":"Purok 4 Tumana"}',
+    registeredAt: new Date(Date.now() - 43200000).toISOString(),
+  },
+];
+
+export const DEMO_MISSING_PERSONS: MissingKinRecord[] = [
+  {
+    id: 'kin_demo_01',
+    fullName: 'Romeo "Tatay Romy" Santos',
+    nickname: 'Tatay Romy',
+    approxAge: 68,
+    gender: 'MALE',
+    lastSeenLocation: 'Near Tumana Dike basketball court before river alarm level 2',
+    lastSeenDateTime: 'Yesterday 3:30 PM',
+    distinguishingFeatures: 'Wearing navy blue polo shirt, khaki shorts, walking cane with rubber tip.',
+    clothingDescription: 'Navy blue collared shirt, gray cap',
+    reporterName: 'Capt. Maria Santos',
+    reporterPhone: '+63 917 555 0101',
+    reporterRelationship: 'Daughter',
+    status: 'SEARCHING',
+    createdAt: new Date(Date.now() - 14400000).toISOString(),
+    updatedAt: new Date(Date.now() - 14400000).toISOString(),
+  },
+  {
+    id: 'kin_demo_02',
+    fullName: 'Lola Rosa Macaraeg',
+    nickname: 'Lola Rosa',
+    approxAge: 74,
+    gender: 'FEMALE',
+    lastSeenLocation: 'Purok 4 Dike side during initial flashflood surge',
+    lastSeenDateTime: 'Today 6:00 AM',
+    distinguishingFeatures: 'White hair in bun, floral duster dress, glasses',
+    clothingDescription: 'Floral duster dress',
+    reporterName: 'Carlo Mendoza (Neighbor)',
+    reporterPhone: '+63 922 555 0404',
+    reporterRelationship: 'Neighbor / Family friend',
+    status: 'FOUND_SAFE',
+    matchedShelterName: 'Malanday Elementary School Evacuation Center',
+    foundNotes: 'Registered and sheltered safely in Ground Floor Room 102 (Elderly/PWD wing).',
+    createdAt: new Date(Date.now() - 28800000).toISOString(),
+    updatedAt: new Date(Date.now() - 7200000).toISOString(),
+  },
+];
+
+export const DEMO_MUTUAL_AID: MutualAidPost[] = [
+  {
+    id: 'aid_demo_01',
+    title: 'Free Generator Mobile Charging Station (3kW Inverter)',
+    description: 'We have a backup generator running continuously. Free charging for phone, powerbanks, and emergency radios. Bring your own charger.',
+    type: 'OFFER',
+    category: 'POWER_CHARGING',
+    purokSector: 'Purok 2 (High Ground, near Bakery)',
+    contactName: 'Kuya Noel Bautista',
+    contactPhone: '+63 915 222 3344',
+    status: 'ACTIVE',
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    locationDetails: 'Yellow two-storey house with green gate',
+  },
+  {
+    id: 'aid_demo_02',
+    title: 'Volunteer Chainsaw Debris Clearing Team (2 chainsaws)',
+    description: 'BFP volunteers and carpenters available with heavy chainsaws to clear fallen mahogany branches blocking residential alleyways.',
+    type: 'OFFER',
+    category: 'EQUIPMENT_TOOLS',
+    purokSector: 'Tumana North / Riverside',
+    contactName: 'Dennis Alcantara',
+    contactPhone: '+63 918 333 4455',
+    status: 'ACTIVE',
+    createdAt: new Date(Date.now() - 10800000).toISOString(),
+  },
+  {
+    id: 'aid_demo_03',
+    title: 'URGENT: Need Submersible Sump Pump to drain flooded ground floor',
+    description: 'Elderly bedridden resident on ground floor; water is 2 feet inside living area. Requesting electric or gas water pump to drain out.',
+    type: 'REQUEST',
+    category: 'EQUIPMENT_TOOLS',
+    purokSector: 'Purok 4 Tumana Dike Side',
+    contactName: 'Liza Dalisay',
+    contactPhone: '+63 920 444 5566',
+    status: 'IN_PROGRESS',
+    claimedBy: 'Dennis Alcantara (Borrowing pump)',
+    createdAt: new Date(Date.now() - 18000000).toISOString(),
+  },
+];
+
+export const DEMO_OUTBREAK_WATCH: FloodExposureRecord[] = [
+  {
+    id: 'exp_demo_01',
+    userId: 'user_resident_carlo',
+    userName: 'Carlo Mendoza',
+    exposureTimestamp: new Date(Date.now() - 36000000).toISOString(), // 10 hours ago
+    wadingDurationMinutes: 45,
+    waterDepth: 'KNEE',
+    hasOpenWounds: true,
+    prophylaxisWindowExpiry: new Date(Date.now() - 36000000 + 72 * 3600000).toISOString(),
+    recommendedProtocol: 'MODERATE_HIGH_RISK_DAILY',
+    takenProphylaxis: false,
+    notes: 'Stepped on sharp bamboo stick submerged in murky floodwater while moving belongings to upper floor.',
+  },
+];
+
+/**
+ * Initializes or seeds demo data into local IndexedDB idempotently.
+ * Checks if data already exists; does not overwrite unless forceReset is true.
+ */
+export async function seedDemoData(forceReset = false): Promise<void> {
+  const usersCount = await localDB.count(STORES.USERS);
+  if (usersCount > 0 && !forceReset) {
+    return; // Already seeded
+  }
+
+  if (forceReset) {
+    // Reset only demo stores, preserve pending un-synced user events
+    await localDB.clear(STORES.COMMUNITY);
+    await localDB.clear(STORES.SHELTERS);
+    await localDB.clear(STORES.RESOURCES);
+    await localDB.clear(STORES.INCIDENTS);
+    await localDB.clear(STORES.REPORTS);
+    await localDB.clear(STORES.ASSISTANCE);
+    await localDB.clear(STORES.MISSIONS);
+    await localDB.clear(STORES.ALERTS);
+    await localDB.clear(STORES.KNOWLEDGE);
+    await localDB.clear(STORES.USERS);
+    await localDB.clear(STORES.TRIAGE_RECORDS);
+    await localDB.clear(STORES.RATION_DISTRIBUTIONS);
+    await localDB.clear(STORES.MISSING_PERSONS);
+    await localDB.clear(STORES.MUTUAL_AID);
+    await localDB.clear(STORES.OUTBREAK_WATCH);
+  }
+
+  await localDB.put(STORES.COMMUNITY, DEMO_COMMUNITY);
+  await localDB.putBatch(STORES.USERS, DEMO_USERS);
+  await localDB.putBatch(STORES.SHELTERS, DEMO_SHELTERS);
+  await localDB.putBatch(STORES.RESOURCES, DEMO_RESOURCES);
+  await localDB.putBatch(STORES.INCIDENTS, DEMO_INCIDENTS);
+  await localDB.putBatch(STORES.REPORTS, DEMO_REPORTS);
+  await localDB.putBatch(STORES.ASSISTANCE, DEMO_ASSISTANCE_REQUESTS);
+  await localDB.putBatch(STORES.MISSIONS, DEMO_MISSIONS);
+  await localDB.putBatch(STORES.ALERTS, DEMO_ALERTS);
+  await localDB.putBatch(STORES.KNOWLEDGE, LOCAL_EMERGENCY_KNOWLEDGE);
+
+  // Seed new resilience features
+  await localDB.putBatch(STORES.TRIAGE_RECORDS, DEMO_TRIAGE_RECORDS);
+  await localDB.putBatch(STORES.MISSING_PERSONS, DEMO_MISSING_PERSONS);
+  await localDB.putBatch(STORES.MUTUAL_AID, DEMO_MUTUAL_AID);
+  await localDB.putBatch(STORES.OUTBREAK_WATCH, DEMO_OUTBREAK_WATCH);
+
+  // Initialize demo household claim cards in localStorage if not set
+  try {
+    const existingCards = localStorage.getItem('resilia_household_claim_cards_v1');
+    if (!existingCards || forceReset) {
+      localStorage.setItem('resilia_household_claim_cards_v1', JSON.stringify(DEMO_HOUSEHOLD_CARDS));
+    }
+  } catch {
+    // ignore
+  }
+
+  console.log('Resilia Philippine demo seed data initialized successfully.');
+}
+

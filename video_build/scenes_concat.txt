@@ -1,0 +1,26 @@
+ffconcat version 1.0
+file frames/scene_01.jpg
+duration 16.641
+file frames/scene_02.jpg
+duration 14.126
+file frames/scene_03.jpg
+duration 14.346
+file frames/scene_04.jpg
+duration 13.891
+file frames/scene_05.jpg
+duration 14.521
+file frames/scene_06.jpg
+duration 15.876
+file frames/scene_07.jpg
+duration 14.276
+file frames/scene_08.jpg
+duration 13.911
+file frames/scene_09.jpg
+duration 15.251
+file frames/scene_10.jpg
+duration 15.941
+file frames/scene_11.jpg
+duration 16.096
+file frames/scene_12.jpg
+duration 15.121
+file frames/scene_12.jpg

@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access for disaster resilience",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["RESIDENT", "RESPONDER", "COORDINATOR"] },
+        "phone": { "type": "string", "maxLength": 30 },
+        "locationName": { "type": "string", "maxLength": 150 },
+        "assignedZone": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["ACTIVE", "ON_DUTY", "RESTING", "DEPLOYED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Shelter": {
+      "title": "Shelter",
+      "description": "Evacuation shelter information and real-time occupancy status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "locationName": { "type": "string", "maxLength": 150 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "capacityTotal": { "type": "number" },
+        "capacityCurrent": { "type": "number" },
+        "isAccessibleWheelchair": { "type": "boolean" },
+        "hasBackupPower": { "type": "boolean" },
+        "hasMedicalClinic": { "type": "boolean" },
+        "hasPotableWater": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["OPEN", "NEAR_CAPACITY", "FULL", "CLOSED"] },
+        "lastUpdated": { "type": "string" }
+      },
+      "required": ["id", "name", "capacityTotal", "capacityCurrent", "status"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "Reported disaster hazard such as flood overtopping or road blockages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "locationName": { "type": "string", "maxLength": 150 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "reporterId": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "status": { "type": "string", "enum": ["REPORTED", "VERIFIED", "RESOLVED", "CONTRADICTED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "type", "title", "description", "status"]
+    },
+    "AssistanceRequest": {
+      "title": "AssistanceRequest",
+      "description": "Citizen emergency assistance request with vulnerability profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "residentId": { "type": "string" },
+        "residentName": { "type": "string", "maxLength": 100 },
+        "peopleCount": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string", "maxLength": 1000 },
+        "locationName": { "type": "string", "maxLength": 150 },
+        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "priorityScore": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "TRIAGED", "ASSIGNED", "IN_PROGRESS", "FULFILLED", "CANCELLED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "residentId", "peopleCount", "category", "priority", "status"]
+    },
+    "Mission": {
+      "title": "Mission",
+      "description": "Responder mission dispatch record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 150 },
+        "assistanceRequestId": { "type": "string" },
+        "priority": { "type": "string" },
+        "pickupLocation": { "type": "string", "maxLength": 150 },
+        "destinationLocation": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "enum": ["PROPOSED", "APPROVED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "REJECTED", "CANCELLED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles and role assignments"
+    },
+    "/shelters/{shelterId}": {
+      "schema": { "$ref": "#/entities/Shelter" },
+      "description": "Authoritative community evacuation shelters"
+    },
+    "/incidents/{incidentId}": {
+      "schema": { "$ref": "#/entities/Incident" },
+      "description": "Community hazard reports and verified status"
+    },
+    "/assistanceRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/AssistanceRequest" },
+      "description": "Household emergency assistance requests"
+    },
+    "/missions/{missionId}": {
+      "schema": { "$ref": "#/entities/Mission" },
+      "description": "Operational responder missions"
+    }
+  }
+}
