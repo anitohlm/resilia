@@ -23,5 +23,12 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "Resilia",
+    "video_build",
+    "test_inspect_template"
+  ]
 }

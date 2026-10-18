@@ -1,22 +1,19 @@
 {
   "firestore": {
-    "databaseId": "ai-studio-resilia-c8b019d3-ffb8-4b10-9406-6b205a5e0627",
     "rules": "firestore.rules",
-    "edition": "ENTERPRISE",
-    "dataAccessMode": "FIRESTORE_NATIVE"
+    "database": "(default)"
   },
-  "hosting": {
-    "public": "dist",
+  "apphosting": {
+    "backendId": "resilia",
+    "rootDir": "/",
     "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "dev-dist",
+      "video_build"
     ],
-	"rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-	]  
+    "alwaysDeployFromSource": true
   }
 }
