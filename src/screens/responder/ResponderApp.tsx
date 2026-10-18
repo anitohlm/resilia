@@ -22,6 +22,7 @@ import {
   Shelter,
 } from '../../types';
 import { useAuth } from '../../services/auth/authContext';
+import { ConnectivityBadge } from '../../components/layout/ConnectivityBadge';
 import { syncClient } from '../../services/offline/syncClient';
 import { getActiveResponderMission, isMissionAssignedToResponder } from './responderUtils';
 import { ResponderHome } from './ResponderHome';
@@ -183,19 +184,10 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
           </div>
 
           {/* Current Responder Identity Card */}
-          <div className="p-3.5 rounded-2xl bg-[#F5F7F6] border border-[#E3E9E5] space-y-1">
+          <div className="p-3.5 rounded-2xl bg-[#F5F7F6] border border-[#E3E9E5] space-y-1.5">
             <div className="flex items-center justify-between text-[11px] text-[#66736D]">
               <span className="font-extrabold uppercase text-[#16856B]">Active Responder</span>
-              <span className="flex items-center gap-1">
-                {connectivity === 'ONLINE' ? (
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                )}
-                <span className="font-semibold text-[10px]">
-                  {connectivity === 'ONLINE' ? 'Online' : 'Offline'}
-                </span>
-              </span>
+              <ConnectivityBadge variant="responder" showTestOfflineToggle={false} />
             </div>
             <p className="font-bold text-xs text-[#182522] truncate">{currentUser.name}</p>
             <p className="text-[10px] text-[#66736D] truncate">{currentUser.assignedZone || 'Sector 2 (Tumana-Malanday)'}</p>
@@ -287,32 +279,7 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
 
           {/* Right Connectivity & Persona Status */}
           <div className="flex items-center gap-2">
-            {/* Offline / Online Pill */}
-            <div
-              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 border ${
-                connectivity === 'ONLINE'
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  : 'bg-amber-50 text-amber-800 border-amber-200'
-              }`}
-            >
-              {connectivity === 'ONLINE' ? (
-                <>
-                  <Wifi className="w-3 h-3 text-emerald-600" />
-                  <span className="hidden sm:inline">Connected</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3 h-3 text-amber-700" />
-                  <span>Offline Mode</span>
-                </>
-              )}
-            </div>
-
-            {pendingSyncCount > 0 && (
-              <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                {pendingSyncCount} queued
-              </span>
-            )}
+            <ConnectivityBadge variant="responder" showTestOfflineToggle={false} />
 
             {/* Quick Switch Dropdown / Role Selector Button */}
             <button

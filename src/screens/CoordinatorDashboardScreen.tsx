@@ -116,6 +116,7 @@ import { localDB, STORES } from '../services/offline/db';
 import { DisasterTriggerModal } from '../components/coordinator/DisasterTriggerModal';
 import { PostDisasterAdvisoryModal } from '../components/coordinator/PostDisasterAdvisoryModal';
 import { SitrepModal } from '../components/coordinator/SitrepModal';
+import { BackupDetailsModal } from '../components/coordinator/BackupDetailsModal';
 import { SafetyCheckInModal } from '../components/safety/SafetyCheckInModal';
 import { AyudaDistributionTrackerModal } from '../components/ayuda/AyudaDistributionTrackerModal';
 import { MissingKinModal } from '../components/kin/MissingKinModal';
@@ -313,6 +314,7 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
   const [dispatchInstructions, setDispatchInstructions] = useState('');
   const [isDispatching, setIsDispatching] = useState(false);
   const [isGeneratingMission, setIsGeneratingMission] = useState(false);
+  const [selectedBackupRequest, setSelectedBackupRequest] = useState<AssistanceRequest | null>(null);
 
   // Shelter quick update state
   const [editingShelter, setEditingShelter] = useState<Shelter | null>(null);
@@ -2197,6 +2199,7 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                         <th className="py-3 px-4">Location</th>
                         <th className="py-3 px-4">Assistance Need</th>
                         <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Backup</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -2214,7 +2217,7 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                         if (filtered.length === 0) {
                           return (
                             <tr>
-                              <td colSpan={7} className="py-8 text-center text-neutral-500 text-xs">
+                              <td colSpan={8} className="py-8 text-center text-neutral-500 text-xs">
                                 No assistance requests match your search and filter criteria.
                               </td>
                             </tr>
@@ -2284,6 +2287,47 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                               >
                                 {req.status}
                               </span>
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              {(() => {
+                                const linkedMission = req.assignedMissionId
+                                  ? missions.find((m) => m.id === req.assignedMissionId)
+                                  : missions.find(
+                                      (m) =>
+                                        m.assistanceRequestId === req.id ||
+                                        m.evidenceRecordIds?.includes(req.id)
+                                    );
+                                const hasBackup = Boolean(
+                                  req.hasBackupRequest ||
+                                    req.backupDetails?.requested ||
+                                    linkedMission?.hasBackupRequest ||
+                                    linkedMission?.backupDetails?.requested
+                                );
+                                const backupObj = req.backupDetails || linkedMission?.backupDetails;
+
+                                if (hasBackup && backupObj) {
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedBackupRequest({ ...req, backupDetails: backupObj })}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 transition cursor-pointer shadow-2xs group"
+                                      title="Click to view responder backup details"
+                                    >
+                                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                                      <span>Yes</span>
+                                      <span className="text-[11px] font-medium text-rose-600 underline group-hover:text-rose-800 ml-0.5">
+                                        (View Details)
+                                      </span>
+                                    </button>
+                                  );
+                                }
+
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-neutral-400 bg-neutral-100 border border-neutral-200">
+                                    No
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="py-3 px-4 text-right whitespace-nowrap">
                               {!req.assignedMissionId && req.status === 'PENDING' ? (
@@ -4281,6 +4325,25 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal 8: Responder Backup Details Modal */}
+      {selectedBackupRequest && (
+        <BackupDetailsModal
+          request={selectedBackupRequest}
+          mission={
+            missions.find(
+              (m) =>
+                m.id === selectedBackupRequest.assignedMissionId ||
+                m.assistanceRequestId === selectedBackupRequest.id ||
+                m.evidenceRecordIds?.includes(selectedBackupRequest.id)
+            )
+          }
+          onClose={() => setSelectedBackupRequest(null)}
+          onStatusUpdated={() => {
+            if (onDataChanged) onDataChanged();
+          }}
+        />
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import {
   AssistanceRequest,
   AssistanceStatus,
   AuditEntry,
+  BackupDetails,
   Community,
   Incident,
   IncidentStatus,
@@ -686,6 +687,85 @@ export class AssistanceRepository {
 
     return req;
   }
+
+  public static async requestBackup(
+    requestId: string,
+    backupDetails: {
+      resourceType: string;
+      quantity?: number;
+      reason: string;
+      locationName: string;
+    },
+    actor: User
+  ): Promise<AssistanceRequest> {
+    const req = await localDB.get<AssistanceRequest>(STORES.ASSISTANCE, requestId);
+    if (!req) {
+      throw new Error(`Assistance request ${requestId} not found.`);
+    }
+
+    const now = new Date().toISOString();
+    const structuredBackup: BackupDetails = {
+      requested: true,
+      resourceType: backupDetails.resourceType,
+      quantity: backupDetails.quantity,
+      reason: backupDetails.reason,
+      locationName: backupDetails.locationName || req.locationName,
+      requestedByResponderId: actor.id,
+      requestedByResponderName: actor.name,
+      requestedAt: now,
+      status: 'REQUESTED',
+    };
+
+    req.hasBackupRequest = true;
+    req.backupDetails = structuredBackup;
+    req.updatedAt = now;
+
+    await localDB.put(STORES.ASSISTANCE, req);
+    await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, req, 'UPDATE', actor.id);
+    await AuditRepository.log(
+      actor,
+      'REQUEST_BACKUP',
+      'assistance_request',
+      requestId,
+      `[BACKUP REQUESTED: ${backupDetails.resourceType}] Qty: ${backupDetails.quantity || 'N/A'} - ${backupDetails.reason}`
+    );
+
+    return req;
+  }
+
+  public static async updateBackupStatus(
+    requestId: string,
+    status: 'REQUESTED' | 'DISPATCHED' | 'RESOLVED' | 'CANCELLED',
+    actor: User,
+    notes?: string
+  ): Promise<AssistanceRequest> {
+    const req = await localDB.get<AssistanceRequest>(STORES.ASSISTANCE, requestId);
+    if (!req) {
+      throw new Error(`Assistance request ${requestId} not found.`);
+    }
+
+    if (req.backupDetails) {
+      req.backupDetails.status = status;
+      if (status === 'DISPATCHED') {
+        req.backupDetails.dispatchedAt = new Date().toISOString();
+      }
+      if (notes) {
+        req.backupDetails.notes = notes;
+      }
+      req.updatedAt = new Date().toISOString();
+      await localDB.put(STORES.ASSISTANCE, req);
+      await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, req, 'UPDATE', actor.id);
+      await AuditRepository.log(
+        actor,
+        'UPDATE_BACKUP_STATUS',
+        'assistance_request',
+        requestId,
+        `Backup status updated to ${status}${notes ? `: ${notes}` : ''}`
+      );
+    }
+
+    return req;
+  }
 }
 
 // Role-based state transition enforcement (Section 5 & 6)
@@ -884,21 +964,67 @@ export class MissionRepository {
     },
     actor: User
   ): Promise<Mission> {
-    const mission = await localDB.get<Mission>(STORES.MISSIONS, missionId);
+    let mission = await localDB.get<Mission>(STORES.MISSIONS, missionId);
+    
+    // If not found directly in STORES.MISSIONS, check if it's an incident-derived mission
+    if (!mission && missionId.startsWith('mis_inc_')) {
+      const incidentId = missionId.replace('mis_inc_', '');
+      const inc = await localDB.get<Incident>(STORES.INCIDENTS, incidentId);
+      if (inc) {
+        mission = {
+          id: missionId,
+          title: `Incident Response: ${inc.title}`,
+          assistanceRequestId: inc.id,
+          priority: inc.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+          rationale: `Coordinator dispatched ${actor.name} to active hazard: ${inc.title}`,
+          pickupLocation: inc.locationName,
+          destinationLocation: inc.locationName,
+          lat: inc.lat,
+          lng: inc.lng,
+          requestedAssistance: inc.description,
+          vulnerabilitySummary: `Field Incident ${inc.type} (${inc.severity})`,
+          assignedResponderId: actor.id,
+          assignedResponderName: actor.name,
+          status: 'IN_PROGRESS',
+          statusHistory: [],
+          evidenceRecordIds: [inc.id],
+          requiresHumanApproval: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      }
+    }
+
     if (!mission) {
       throw new Error(`Mission ${missionId} not found.`);
     }
 
+    const now = new Date().toISOString();
+    const structuredBackup: BackupDetails = {
+      requested: true,
+      resourceType: backupDetails.resourceType,
+      quantity: backupDetails.quantity,
+      reason: backupDetails.reason,
+      locationName: backupDetails.locationName || mission.pickupLocation,
+      requestedByResponderId: actor.id,
+      requestedByResponderName: actor.name,
+      requestedAt: now,
+      status: 'REQUESTED',
+    };
+
     const note = `[BACKUP REQUESTED: ${backupDetails.resourceType}] Qty: ${backupDetails.quantity || 'N/A'} - ${backupDetails.reason} at ${backupDetails.locationName}`;
-    mission.updatedAt = new Date().toISOString();
+    mission.updatedAt = now;
+    mission.hasBackupRequest = true;
+    mission.backupDetails = structuredBackup;
     mission.statusHistory.push({
       status: mission.status,
       actorId: actor.id,
       actorName: actor.name,
-      timestamp: mission.updatedAt,
+      timestamp: now,
       note,
     });
 
+    await localDB.put(STORES.MISSIONS, mission);
     await EventQueueService.recordLocalWrite('mission', STORES.MISSIONS, mission, 'UPDATE', actor.id);
     await AuditRepository.log(
       actor,
@@ -907,6 +1033,30 @@ export class MissionRepository {
       missionId,
       note
     );
+
+    // Bi-directionally propagate backup details to linked AssistanceRequest
+    try {
+      let linkedRequest: AssistanceRequest | undefined;
+      if (mission.assistanceRequestId) {
+        linkedRequest = await localDB.get<AssistanceRequest>(STORES.ASSISTANCE, mission.assistanceRequestId);
+      }
+      if (!linkedRequest) {
+        const allRequests = await localDB.getAll<AssistanceRequest>(STORES.ASSISTANCE);
+        linkedRequest = allRequests.find(
+          (r) => r.assignedMissionId === mission!.id || mission!.evidenceRecordIds?.includes(r.id)
+        );
+      }
+
+      if (linkedRequest) {
+        linkedRequest.hasBackupRequest = true;
+        linkedRequest.backupDetails = structuredBackup;
+        linkedRequest.updatedAt = now;
+        await localDB.put(STORES.ASSISTANCE, linkedRequest);
+        await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, linkedRequest, 'UPDATE', actor.id);
+      }
+    } catch (err) {
+      console.warn('Could not propagate backup request to linked assistance request:', err);
+    }
 
     return mission;
   }

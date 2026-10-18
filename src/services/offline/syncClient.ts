@@ -96,6 +96,16 @@ class SyncClientService {
     return this.status;
   }
 
+  public isCurrentlySyncing(): boolean {
+    return this.isSyncing || this.status === 'SYNCING';
+  }
+
+  public isOnline(): boolean {
+    if (this.simulatedOffline) return false;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+    return this.status === 'ONLINE' || this.status === 'SYNCING';
+  }
+
   public getLastSyncTime(): string | null {
     return this.lastSuccessfulSync;
   }
@@ -191,6 +201,9 @@ class SyncClientService {
 
     this.isSyncing = true;
     this.setStatus('SYNCING');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('resilia_sync_start'));
+    }
 
     try {
       const pendingEvents = await EventQueueService.getPendingEvents();
@@ -275,6 +288,7 @@ class SyncClientService {
       this.isSyncing = false;
 
       if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('resilia_sync_end'));
         window.dispatchEvent(new CustomEvent('resilia_sync_complete', { detail: { syncedCount, conflictCount } }));
       }
 
@@ -283,6 +297,9 @@ class SyncClientService {
       console.warn('Sync failed:', err);
       this.setStatus('SYNC_ERROR');
       this.isSyncing = false;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('resilia_sync_end'));
+      }
       return { success: false, syncedCount: 0, conflictCount: 0 };
     }
   }

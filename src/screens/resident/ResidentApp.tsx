@@ -17,6 +17,7 @@ import {
   ResiliaBrandIcon,
 } from '../../components/icons/ResidentIcons';
 import { ScreenId } from '../../components/layout/Navbar';
+import { ConnectivityBadge } from '../../components/layout/ConnectivityBadge';
 import { useAuth } from '../../services/auth/authContext';
 import { isScreenAllowedForRole } from '../../services/auth/rbac';
 import { syncClient } from '../../services/offline/syncClient';
@@ -138,7 +139,7 @@ export const ResidentApp: React.FC<ResidentAppProps> = (props) => {
           </button>
 
           <div className="flex items-center gap-1.5">
-            <ConnectionPill status={props.connectivity} simulatedOffline={syncClient.isSimulatingOffline()} />
+            <ConnectivityBadge variant="resident" />
             <button
               type="button"
               onClick={() => navigate('ASK_RESILIA')}
@@ -282,29 +283,7 @@ export const ResidentApp: React.FC<ResidentAppProps> = (props) => {
   );
 };
 
-/** Connection status derived from the real sync client heartbeat — not a decorative switch. */
-const ConnectionPill: React.FC<{ status: ConnectivityStatus; simulatedOffline: boolean }> = ({
-  status,
-  simulatedOffline,
-}) => {
-  const effective: ConnectivityStatus = simulatedOffline ? 'OFFLINE' : status;
-  const map: Record<ConnectivityStatus, { cls: string; icon: React.ReactNode; short: string }> = {
-    ONLINE: { cls: 'bg-rs-tint text-rs-primary-dark', icon: <Wifi className="w-4 h-4" />, short: 'Connected' },
-    SYNCING: { cls: 'bg-rs-tint text-rs-primary-dark', icon: <RefreshCw className="w-4 h-4 animate-spin" />, short: 'Sending…' },
-    DEGRADED: { cls: 'bg-rs-warning-bg text-rs-warning', icon: <Wifi className="w-4 h-4" />, short: 'Limited' },
-    SYNC_ERROR: { cls: 'bg-rs-warning-bg text-rs-warning', icon: <Wifi className="w-4 h-4" />, short: 'Limited' },
-    OFFLINE: { cls: 'bg-rs-bg text-rs-text border border-rs-border', icon: <WifiOff className="w-4 h-4" />, short: 'Offline' },
-  };
-  const m = map[effective];
-  return (
-    <span
-      role="status"
-      aria-label={`Connection: ${t.connection[effective]}`}
-      title={t.connection[effective]}
-      className={cx('inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-semibold', m.cls)}
-    >
-      <span aria-hidden>{m.icon}</span>
-      <span aria-hidden>{m.short}</span>
-    </span>
-  );
+/** Connection status and spinning sync icon for resident portal */
+const ConnectionPill: React.FC<{ status?: ConnectivityStatus; simulatedOffline?: boolean }> = () => {
+  return <ConnectivityBadge variant="resident" />;
 };

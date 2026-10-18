@@ -560,10 +560,31 @@ export const ResponderHome: React.FC<ResponderHomeProps> = ({
 
           <button
             onClick={() => {
-              if (activeMission) {
-                setBackupModalMission(activeMission);
-              } else if (missions.length > 0) {
-                setBackupModalMission(missions[0]);
+              const target = activeMission || missions.find((m) => isAssignedToMe(m)) || missions[0];
+              if (target) {
+                setBackupModalMission(target);
+              } else {
+                setBackupModalMission({
+                  id: 'mis_general_backup_' + currentUser.id,
+                  title: `General Field Backup: ${currentUser.name}`,
+                  assistanceRequestId: '',
+                  priority: 'HIGH',
+                  rationale: `Field backup requested by ${currentUser.name}`,
+                  pickupLocation: currentUser.assignedZone || 'Marikina Sector Operations',
+                  destinationLocation: 'Marikina Operations Base',
+                  lat: 14.658,
+                  lng: 121.102,
+                  requestedAssistance: 'Field Support Needed',
+                  vulnerabilitySummary: 'Operational Backup',
+                  assignedResponderId: currentUser.id,
+                  assignedResponderName: currentUser.name,
+                  status: 'IN_PROGRESS',
+                  statusHistory: [],
+                  evidenceRecordIds: [],
+                  requiresHumanApproval: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                });
               }
             }}
             className="p-4 rounded-2xl bg-white border border-[#E3E9E5] hover:border-[#16856B] shadow-xs text-left transition space-y-2 group"

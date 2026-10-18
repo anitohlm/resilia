@@ -249,6 +249,22 @@ export interface AssistanceRequest {
   createdAt: string;
   updatedAt: string;
   assignedMissionId?: string;
+  hasBackupRequest?: boolean;
+  backupDetails?: BackupDetails;
+}
+
+export interface BackupDetails {
+  requested: boolean;
+  resourceType: string;
+  quantity?: number;
+  reason: string;
+  locationName: string;
+  requestedByResponderId: string;
+  requestedByResponderName: string;
+  requestedAt: string;
+  status: 'REQUESTED' | 'DISPATCHED' | 'RESOLVED' | 'CANCELLED';
+  dispatchedAt?: string;
+  notes?: string;
 }
 
 export type MissionStatus =
@@ -290,6 +306,8 @@ export interface Mission {
   statusHistory: MissionStatusEntry[];
   evidenceRecordIds: string[];
   requiresHumanApproval: boolean;
+  hasBackupRequest?: boolean;
+  backupDetails?: BackupDetails;
   createdAt: string;
   updatedAt: string;
 }

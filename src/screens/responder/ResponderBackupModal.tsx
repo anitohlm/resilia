@@ -36,6 +36,7 @@ export const ResponderBackupModal: React.FC<ResponderBackupModalProps> = ({
   const { currentUser } = useAuth();
   const [resourceType, setResourceType] = useState('ADDITIONAL_RESPONDERS');
   const [quantity, setQuantity] = useState<number>(2);
+  const [locationName, setLocationName] = useState(mission.pickupLocation || '');
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -66,7 +67,7 @@ export const ResponderBackupModal: React.FC<ResponderBackupModalProps> = ({
           resourceType,
           quantity: quantity > 0 ? quantity : undefined,
           reason: reason.trim(),
-          locationName: mission.pickupLocation,
+          locationName: locationName.trim() || mission.pickupLocation,
         },
         currentUser
       );
@@ -167,6 +168,20 @@ export const ResponderBackupModal: React.FC<ResponderBackupModalProps> = ({
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#E3E9E5] text-sm focus:outline-none focus:ring-2 focus:ring-[#16856B] bg-[#F5F7F6]"
+            />
+          </div>
+
+          {/* Location on Scene */}
+          <div>
+            <label className="block text-xs font-bold text-[#182522] mb-1.5 uppercase tracking-wider">
+              Location on Scene
+            </label>
+            <input
+              type="text"
+              value={locationName}
+              onChange={(e) => setLocationName(e.target.value)}
+              placeholder="e.g. Purok 4, Tumana Dike Side"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E3E9E5] text-xs focus:outline-none focus:ring-2 focus:ring-[#16856B] bg-[#F5F7F6]"
             />
           </div>
 

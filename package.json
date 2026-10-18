@@ -12,7 +12,7 @@
     "lint": "tsc --noEmit",
     "deck:pptx": "tsx scripts/generateDeckPptx.ts",
     "video": "powershell -ExecutionPolicy Bypass -File scripts/build_demo_video.ps1",
-    "test": "tsx tests/disasterAdvisoriesAndGoBag.test.ts && tsx tests/residentIcons.test.ts && tsx tests/resilienceFeatures.test.ts && tsx tests/deckValidation.test.ts && tsx tests/demoVideoValidation.test.ts"
+    "test": "tsx tests/disasterAdvisoriesAndGoBag.test.ts && tsx tests/residentIcons.test.ts && tsx tests/resilienceFeatures.test.ts && tsx tests/deckValidation.test.ts && tsx tests/demoVideoValidation.test.ts && tsx tests/responderBackupWorkflow.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
