@@ -450,6 +450,10 @@ export const ResidentHome: React.FC<ResidentHomeProps> = (props) => {
           setActiveAlert(null);
           navigate('REQUEST_ASSISTANCE');
         }}
+        onOpenGoBag={() => {
+          setActiveAlert(null);
+          setIsGoBagModalOpen(true);
+        }}
       />
 
       <ShelterDetailsDialog

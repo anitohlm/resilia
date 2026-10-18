@@ -616,6 +616,15 @@ export const DEMO_ALERTS: Alert[] = [
     expiresAt: new Date(Date.now() + 43200000).toISOString(),
     active: true,
     isExercise: true,
+    disasterType: 'FLOOD',
+    affectedZones: ['Marikina Riverbanks', 'Barangay Tumana', 'Malanday Lowlands', 'Provident Village'],
+    preparations: [
+      'Move household essentials and electrical appliances to second floor or high ground',
+      'Secure 72-hour family evacuation Go-Bag with emergency whistle and flashlight',
+      'Store minimum 1 gallon of potable drinking water per family member per day',
+      'Keep mobile devices and emergency powerbanks fully charged',
+      'Riverside residents prepare for immediate pre-emptive evacuation if river sirens trigger',
+    ],
   },
   {
     id: 'alert_typhoon_pepito',

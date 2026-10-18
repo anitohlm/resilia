@@ -6,9 +6,20 @@
  * - Official advisories are kept separate from sensor readings; discrepancies are surfaced, never auto-resolved.
  */
 
-import React from 'react';
-import { ChevronRight, Info } from 'lucide-react';
-import { EmergencyAlertIcon } from '../../components/icons/ResidentIcons';
+import React, { useEffect, useState } from 'react';
+import {
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Info,
+  ListChecks,
+  Phone,
+  RotateCcw,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
+import { EmergencyAlertIcon, GoBagIcon } from '../../components/icons/ResidentIcons';
 import { Alert, Community } from '../../types';
 import { cx, Dialog, Notice, PrimaryButton, StatusPill } from './ui';
 import { formatTime, isExerciseAlert, isStale, RIVER_ALERT_THRESHOLD_M, timeAgo } from './residentUtils';
@@ -30,6 +41,62 @@ export function readableTitle(title: string): string {
   return title;
 }
 
+/**
+ * Context-aware safety preparations & instructions.
+ * If the coordinator or data source supplied custom action steps, honors those.
+ * Otherwise, synthesizes official civil defense (NDRRMC/OCD) actionable protocols
+ * matching the alert disaster type and risk profile.
+ */
+export function getDefaultPreparations(alert?: Alert | null): string[] {
+  if (!alert) return [];
+  if (alert.preparations && alert.preparations.length > 0) {
+    return alert.preparations;
+  }
+  const text = `${alert.title || ''} ${alert.message || ''} ${alert.disasterType || ''}`.toLowerCase();
+
+  if (text.includes('rain') || text.includes('flood') || text.includes('habagat') || text.includes('river')) {
+    return [
+      'Pack or inspect 72-hour family Go-Bag (drinking water, ready-to-eat food, maintenance medicines)',
+      'Store minimum 1 gallon of potable drinking water per person per day (minimum 3-day reserve)',
+      'Charge mobile phones, emergency lamps, and high-capacity portable power banks',
+      'Move valuable household appliances, electronics, and documents to second floor or high ground',
+      'Secure birth certificates, government IDs, deeds, and cash in sealed waterproof ziplock bags',
+      'Low-lying & riverside puroks review designated barangay evacuation routes to nearby school gyms',
+      'Unplug ground-floor electrical appliances and prepare to shut off main circuit breaker if waters rise',
+    ];
+  }
+
+  if (text.includes('typhoon') || text.includes('tcws') || text.includes('storm') || text.includes('wind') || text.includes('gale')) {
+    return [
+      'Inspect and secure 72-hour family evacuation Go-Bag with emergency whistle and high-lumen flashlight',
+      'Reinforce and anchor loose corrugated roof sheets, exterior signage, and clean drainage downspouts',
+      'Stock non-perishable canned food, potable water, and infant/senior essentials for at least 72 hours',
+      'Charge all communication devices, emergency lights, and battery-operated AM/FM radios',
+      'Riverside & coastal puroks monitor barangay emergency sirens for pre-emptive evacuation orders',
+      'Save emergency hotlines: Marikina Rescue 161 and local Barangay Disaster Operations Center',
+    ];
+  }
+
+  if (text.includes('earthquake') || text.includes('quake') || text.includes('tremor') || text.includes('fault')) {
+    return [
+      'Practice Duck, Cover, and Hold under sturdy furniture during initial tremors; stay clear of glass windows',
+      'Grab 72-hour family Go-Bag and safely evacuate to designated open-air barangay assembly grounds',
+      'Check family members for injuries and administer immediate first-aid if required',
+      'Check for gas leaks and smell of burning before turning on any electrical switches or open flames',
+      'Expect aftershocks and keep battery-powered radio tuned to official NDRRMC advisories',
+    ];
+  }
+
+  return [
+    'Secure 72-hour family evacuation Go-Bag near your front exit door for immediate departure',
+    'Store minimum 1 gallon of potable drinking water per family member per day (3-day supply)',
+    'Keep mobile devices, rechargeable emergency lanterns, and portable power banks fully charged',
+    'Keep essential prescription maintenance medications and first-aid supplies within arm’s reach',
+    'Ensure family identification cards and essential documents are sealed in waterproof pouches',
+    'Follow official instructions and advisories issued by your Barangay Disaster Risk Reduction Council',
+  ];
+}
+
 export const AlertCard: React.FC<{
   alert: Alert;
   isOffline: boolean;
@@ -41,6 +108,7 @@ export const AlertCard: React.FC<{
   const exercise = isExerciseAlert(alert);
   const stale = isStale(alert.issuedAt);
   const hasLandfall = typeof alert.daysUntilLandfall === 'number';
+  const preparations = getDefaultPreparations(alert);
 
   return (
     <section aria-labelledby={`alert-${alert.id}`} className={cx('rounded-2xl border p-4 shadow-xs', s.wrap)}>
@@ -110,16 +178,19 @@ export const AlertCard: React.FC<{
           )}
 
           {/* Preparations needed preview */}
-          {alert.preparations && alert.preparations.length > 0 && (
+          {preparations.length > 0 && (
             <div className="mt-2.5 p-2.5 rounded-xl bg-white/80 border border-rs-border/60 text-xs text-neutral-800 space-y-1">
               <div className="font-bold text-neutral-900 flex items-center justify-between">
-                <span>Preparations Needed Before Impact:</span>
+                <span className="flex items-center gap-1.5">
+                  <ListChecks className="w-3.5 h-3.5 text-rs-primary" />
+                  <span>Preparations Needed Before Impact:</span>
+                </span>
                 <span className="text-[10px] text-rs-primary font-bold">
-                  {alert.preparations.length} action steps
+                  {preparations.length} action steps
                 </span>
               </div>
               <ul className="list-disc list-inside space-y-0.5 text-neutral-700 pl-0.5">
-                {alert.preparations.slice(0, 2).map((p, i) => (
+                {preparations.slice(0, 2).map((p, i) => (
                   <li key={i} className="truncate">{p}</li>
                 ))}
               </ul>
@@ -139,8 +210,9 @@ export const AlertCard: React.FC<{
       </div>
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2">
-        <PrimaryButton onClick={onOpen} className="!min-h-[46px] !px-4 shadow-xs">
-          View safety preparations & instructions
+        <PrimaryButton onClick={onOpen} className="!min-h-[46px] !px-4 shadow-xs flex items-center gap-2">
+          <ListChecks className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>View safety preparations & instructions</span>
         </PrimaryButton>
         {moreCount > 0 && onSeeAll && (
           <button
@@ -163,10 +235,40 @@ export const AlertDetailsDialog: React.FC<{
   onClose: () => void;
   onFindShelter: () => void;
   onGetHelp: () => void;
-}> = ({ alert, community, isOffline, onClose, onFindShelter, onGetHelp }) => {
+  onOpenGoBag?: () => void;
+}> = ({ alert, community, isOffline, onClose, onFindShelter, onGetHelp, onOpenGoBag }) => {
   if (!alert) return null;
   const exercise = isExerciseAlert(alert);
   const hasLandfall = typeof alert.daysUntilLandfall === 'number';
+  const preparations = getDefaultPreparations(alert);
+
+  const [completedItems, setCompletedItems] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    setCompletedItems({});
+  }, [alert?.id]);
+
+  const toggleItem = (idx: number) => {
+    setCompletedItems((prev) => ({
+      ...prev,
+      [idx]: !prev[idx],
+    }));
+  };
+
+  const markAllComplete = () => {
+    const all: Record<number, boolean> = {};
+    preparations.forEach((_, idx) => {
+      all[idx] = true;
+    });
+    setCompletedItems(all);
+  };
+
+  const resetAll = () => {
+    setCompletedItems({});
+  };
+
+  const completedCount = preparations.filter((_, idx) => completedItems[idx]).length;
+  const percent = preparations.length > 0 ? Math.round((completedCount / preparations.length) * 100) : 0;
 
   return (
     <Dialog
@@ -174,7 +276,7 @@ export const AlertDetailsDialog: React.FC<{
       onClose={onClose}
       title={readableTitle(alert.title)}
       footer={
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
           <PrimaryButton full onClick={onFindShelter}>
             Find a safe place
           </PrimaryButton>
@@ -220,29 +322,111 @@ export const AlertDetailsDialog: React.FC<{
         </Notice>
       )}
 
-      <div>
-        <h3 className="text-base font-semibold text-rs-text">Official Guidance</h3>
-        <p className="mt-1 leading-relaxed whitespace-pre-line text-[15px]">{alert.message}</p>
+      {/* Official Guidance Section */}
+      <div className="space-y-1">
+        <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+          Official Guidance & Threat Advisory
+        </h3>
+        <p className="p-3.5 rounded-xl bg-rs-bg border border-rs-border text-[15px] text-rs-text leading-relaxed whitespace-pre-line">
+          {alert.message}
+        </p>
       </div>
 
-      {/* Recommended Preparations List */}
-      {alert.preparations && alert.preparations.length > 0 && (
-        <div className="space-y-2 p-3.5 rounded-2xl bg-rs-tint/40 border border-rs-border">
+      {/* Action Checklist: Safety Preparations & Instructions */}
+      <div className="space-y-2.5 p-4 rounded-2xl bg-rs-tint/40 border border-rs-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <h4 className="text-sm font-bold text-rs-text flex items-center gap-1.5">
-            <span>Action Checklist: Required Preparations Before Landfall</span>
+            <ListChecks className="w-4 h-4 text-rs-primary" />
+            <span>Action Checklist: Safety Preparations & Instructions</span>
           </h4>
-          <div className="space-y-1.5 pt-1 text-sm">
-            {alert.preparations.map((prep, idx) => (
-              <div key={idx} className="flex items-start gap-2.5 p-2 rounded-xl bg-white border border-neutral-200/70 shadow-2xs">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  ✓
-                </span>
-                <span className="text-neutral-800 leading-snug">{prep}</span>
-              </div>
-            ))}
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-rs-text border border-rs-border self-start sm:self-auto shadow-2xs">
+            {completedCount}/{preparations.length} completed ({percent}%)
+          </span>
+        </div>
+
+        {/* Visual Progress Bar */}
+        <div className="w-full bg-neutral-200/80 h-2 rounded-full overflow-hidden">
+          <div
+            className={cx(
+              'h-full transition-all duration-300',
+              percent >= 100 ? 'bg-emerald-600' : percent >= 50 ? 'bg-amber-500' : 'bg-emerald-500'
+            )}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-xs pt-0.5 pb-1 text-rs-muted">
+          <span>Tap items as you complete household preparations:</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={markAllComplete}
+              className="text-rs-primary font-bold hover:underline"
+            >
+              Check all
+            </button>
+            <button
+              type="button"
+              onClick={resetAll}
+              className="hover:underline"
+            >
+              Reset
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Interactive action items list */}
+        <div className="space-y-1.5">
+          {preparations.map((prep, idx) => {
+            const isDone = !!completedItems[idx];
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => toggleItem(idx)}
+                className={cx(
+                  'w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all text-sm group',
+                  isDone
+                    ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 shadow-2xs'
+                    : 'bg-white border-neutral-200 hover:border-rs-primary/50 text-neutral-800 shadow-2xs'
+                )}
+                aria-pressed={isDone}
+              >
+                <span
+                  className={cx(
+                    'w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 transition-colors',
+                    isDone
+                      ? 'bg-emerald-600 text-white'
+                      : 'border border-neutral-300 bg-neutral-50 text-transparent group-hover:border-rs-primary'
+                  )}
+                >
+                  ✓
+                </span>
+                <span className={cx('leading-snug flex-1', isDone && 'line-through text-emerald-900/80')}>
+                  {prep}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Go-Bag Bridge Action */}
+        {onOpenGoBag && (
+          <button
+            type="button"
+            onClick={onOpenGoBag}
+            className="w-full flex items-center justify-between p-3.5 rounded-xl bg-amber-500/15 border border-amber-300 hover:bg-amber-500/25 transition-all text-amber-950 font-semibold text-sm mt-2 shadow-2xs group"
+          >
+            <span className="flex items-center gap-2">
+              <GoBagIcon className="w-5 h-5 text-amber-700 group-hover:scale-105 transition-transform" />
+              <span>Pack 72-Hour Evacuation Go-Bag</span>
+            </span>
+            <span className="text-xs text-amber-800 font-bold underline">
+              View 10 Essentials →
+            </span>
+          </button>
+        )}
+      </div>
 
       {/* Affected Zones */}
       {alert.affectedZones && alert.affectedZones.length > 0 && (
@@ -258,7 +442,27 @@ export const AlertDetailsDialog: React.FC<{
         </div>
       )}
 
-      <dl className="grid grid-cols-1 gap-2.5 text-xs text-rs-muted border-t border-neutral-200/80 pt-3">
+      {/* Emergency Hotlines */}
+      <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200/80 text-xs space-y-1.5">
+        <span className="font-bold text-neutral-800 block">Emergency Responders & Hotlines:</span>
+        <div className="flex flex-wrap items-center gap-3 text-rs-text font-medium">
+          <a
+            href="tel:161"
+            className="inline-flex items-center gap-1.5 text-rs-primary font-bold hover:underline"
+          >
+            <Phone className="w-3.5 h-3.5" /> Marikina Rescue: 161
+          </a>
+          <span>·</span>
+          <a
+            href="tel:0286460427"
+            className="inline-flex items-center gap-1.5 text-rs-text hover:underline"
+          >
+            <Phone className="w-3.5 h-3.5" /> CDRRMO Command: (02) 8646-0427
+          </a>
+        </div>
+      </div>
+
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-rs-muted border-t border-neutral-200/80 pt-3">
         <div>
           <dt className="inline text-neutral-500 font-medium">Issued by: </dt>
           <dd className="inline font-semibold text-neutral-800">{alert.source}</dd>
@@ -270,7 +474,7 @@ export const AlertDetailsDialog: React.FC<{
           </dd>
         </div>
         {alert.expiresAt && (
-          <div>
+          <div className="sm:col-span-2">
             <dt className="inline text-neutral-500 font-medium">Valid until: </dt>
             <dd className="inline font-semibold text-neutral-800">{formatTime(alert.expiresAt)}</dd>
           </div>

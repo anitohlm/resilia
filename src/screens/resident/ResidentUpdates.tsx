@@ -19,6 +19,7 @@ import {
 import { Alert, Incident } from '../../types';
 import { Card, Notice, ScreenHeader, StatusPill } from './ui';
 import { AlertCard, AlertDetailsDialog } from './ResidentAlerts';
+import { GoBagChecklistModal } from '../../components/safety/GoBagChecklistModal';
 import { currentAlerts, formatTime, isStale, timeAgo } from './residentUtils';
 import { helpCategoryLabel, reportTypeLabel } from './strings';
 import { Navigate, ResidentData } from './ResidentApp';
@@ -33,6 +34,7 @@ export const ResidentUpdates: React.FC<ResidentUpdatesProps> = (props) => {
   const { currentUser } = useAuth();
   const alerts = currentAlerts(props.alerts);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [isGoBagModalOpen, setIsGoBagModalOpen] = useState(false);
 
   // My submitted assistance requests
   const myRequests = (props.assistanceRequests || []).filter(
@@ -202,6 +204,15 @@ export const ResidentUpdates: React.FC<ResidentUpdatesProps> = (props) => {
           setSelectedAlert(null);
           navigate('REQUEST_ASSISTANCE');
         }}
+        onOpenGoBag={() => {
+          setSelectedAlert(null);
+          setIsGoBagModalOpen(true);
+        }}
+      />
+
+      <GoBagChecklistModal
+        isOpen={isGoBagModalOpen}
+        onClose={() => setIsGoBagModalOpen(false)}
       />
     </div>
   );

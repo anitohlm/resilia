@@ -2,7 +2,8 @@
  * Resident UI primitives — consistent spacing, type, touch targets (≥48px) and accessible dialogs.
  */
 
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Info, X } from 'lucide-react';
 import { EmergencyAlertIcon } from '../../components/icons/ResidentIcons';
 import { DeliveryInfo, formatTime } from './residentUtils';
@@ -380,6 +381,11 @@ export const Dialog: React.FC<{
 }> = ({ open, onClose, title, children, footer }) => {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -391,7 +397,7 @@ export const Dialog: React.FC<{
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         ) ?? []
       ).filter((el) => !el.hasAttribute('disabled'));
-    focusables()[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'Tab') {
@@ -419,38 +425,61 @@ export const Dialog: React.FC<{
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
-    <div className="resident-ui fixed inset-0 z-[60] flex items-end sm:items-center justify-center font-inter animate-in fade-in duration-200">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-200" onClick={onClose} aria-hidden />
+
+  const content = (
+    <div
+      className="resident-ui fixed inset-0 z-[100] flex items-end sm:items-center justify-center font-inter animate-in fade-in duration-200"
+      role="presentation"
+    >
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
+        onClick={onClose}
+        aria-hidden
+      />
       <div
         ref={ref}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative bg-rs-card w-full sm:max-w-lg max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-xl animate-sheet sm:animate-modal"
+        className="relative bg-rs-card w-full sm:max-w-xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl animate-sheet sm:animate-modal z-10 overflow-hidden"
       >
-        <div className="flex items-start justify-between gap-3 p-5 pb-3 border-b border-rs-border">
-          <h2 id={titleId} className="text-xl font-bold text-rs-text pt-1.5">
-            {title}
-          </h2>
+        <div className="flex items-start justify-between gap-3 p-5 pb-3.5 border-b border-rs-border bg-rs-card shrink-0">
+          <div className="min-w-0 flex-1 pr-2">
+            <h2 id={titleId} className="text-lg sm:text-xl font-bold text-rs-text leading-snug">
+              {title}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-12 h-12 -mr-2 rounded-full flex items-center justify-center text-rs-muted hover:bg-rs-bg shrink-0"
-            aria-label="Close"
+            className="w-10 h-10 -mr-1 -mt-1 rounded-full flex items-center justify-center text-rs-muted hover:text-rs-text hover:bg-rs-bg transition-colors shrink-0"
+            aria-label="Close dialog"
           >
-            <X className="w-6 h-6" aria-hidden />
+            <X className="w-5 h-5" aria-hidden />
           </button>
         </div>
-        <div className="p-5 overflow-y-auto text-base text-rs-text space-y-4">{children}</div>
+        <div className="p-5 overflow-y-auto overscroll-contain text-base text-rs-text space-y-4 flex-1">
+          {children}
+        </div>
         {footer && (
-          <div className="p-5 pt-3 border-t border-rs-border pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+          <div className="p-4 sm:p-5 pt-3 border-t border-rs-border bg-rs-card/95 backdrop-blur-xs shrink-0 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
             {footer}
           </div>
         )}
       </div>
     </div>
   );
+
+  if (
+    mounted &&
+    typeof document !== 'undefined' &&
+    document.body &&
+    typeof (document.body as any).appendChild === 'function' &&
+    (document.body as any).nodeType === 1
+  ) {
+    return createPortal(content, document.body);
+  }
+  return content;
 };
 
 export const Spinner: React.FC<{ label: string }> = ({ label }) => (
