@@ -54,7 +54,7 @@ export const slidesData = [
     points: [
       "The 72-Hour Blackout Crisis: Climate disasters knock out power grids and cellular infrastructure in vulnerable coastal river basins (modeled on the Marikina River). Conventional cloud-only tools fail with blank loading spinners during the critical first 72 hours.",
       "Hybrid Dual-Engine AI Architecture: Combines Google Gemini 3.8 Flash in the cloud for deep situational reasoning and macro clustering with zero-overhead client IndexedDB edge persistence (15 stores) and deterministic local algorithms when connectivity drops.",
-      "Offline-First Tri-Role Community Coordination: Tailored, low-friction mobile workflows for Residents (instant SOS beacon & shelter locator), Responders (START casualty triage & QR wristbands), and Coordinators (shelter capacity & cryptographic dispatch gate) operating with zero active internet.",
+      "Tri-Role Community Coordination: Tailored, low-friction mobile workflows for Residents (instant SOS beacon & shelter locator), Responders (START casualty triage & QR wristbands), and Coordinators (shelter capacity & cryptographic dispatch gate) operating with zero active internet.",
       "Anti-Hallucination Emergency Safety: Deterministic safety boundaries grounded strictly in Philippine NDRRMC and DOH disaster SOPs, requiring human coordinator cryptographic authorization for emergency dispatches.",
       "Rigorous Verification Baseline: Evaluated against simulated Marikina River Basin telemetry (Typhoon Ondoy / Ulysses baselines, Alarm Level 3 at 18m water depth) backed by automated test validation."
     ],
@@ -214,7 +214,7 @@ export const slidesData = [
       "UN Sustainable Development Goal 11: Sustainable Cities & Communities - Disaster resilience for coastal and river basin informal settlements",
       "UN Sustainable Development Goal 13: Climate Action - Strengthening adaptive capacity to intensifying supertyphoons and flash floods",
       "Sendai Framework for DRR (2015-2030): Priority 4 - Enhancing disaster preparedness for effective response and Building Back Better",
-      "Grassroots Bayanihan Community Ownership: 100% free for citizens, no app store barrier, privacy-preserving local storage, community mesh"
+      "Grassroots Bayanihan Community Ownership: completely free for citizens, no app store barrier, privacy-preserving local storage, community mesh"
     ],
     notes: "Resilia directly advances UN Sustainable Development Goals 11 and 13 as well as the Sendai Framework Priority 4. By removing all financial, technical, and connectivity barriers, we empower grassroots communities to protect themselves and foster true bayanihan community solidarity."
   },
@@ -310,7 +310,9 @@ export function buildPresentation() {
     'feature_bayanihan_aid.jpg',
     'resilia_phone_resident.jpg',
     'resilia_phone_responder.jpg',
-    'resilia_phone_coordinator.jpg'
+    'resilia_phone_coordinator.jpg',
+    'architecture_diagram.png',
+    'process_flow_diagram.png'
   ];
 
   for (const img of requiredImages) {
@@ -555,10 +557,16 @@ function generateAllSlides() {
     if (sNum === 5) {
       rels.push({ id: 'rIdImgBeacon', type: 'image', target: '../media/feature_beacon_sos.jpg' });
     }
+    if (sNum === 6) {
+      rels.push({ id: 'rIdImgProcessFlow', type: 'image', target: '../media/process_flow_diagram.png' });
+    }
     if (sNum === 7) {
       rels.push({ id: 'rIdImgResident', type: 'image', target: '../media/resilia_phone_resident.jpg' });
       rels.push({ id: 'rIdImgResponder', type: 'image', target: '../media/resilia_phone_responder.jpg' });
       rels.push({ id: 'rIdImgCoordinator', type: 'image', target: '../media/resilia_phone_coordinator.jpg' });
+    }
+    if (sNum === 8) {
+      rels.push({ id: 'rIdImgArch', type: 'image', target: '../media/architecture_diagram.png' });
     }
     if (sNum === 11) {
       rels.push({ id: 'rIdImgTriage', type: 'image', target: '../media/feature_start_triage.jpg' });
@@ -664,7 +672,7 @@ function generateContentSlideXml(slideNum: number, data: typeof slidesData[0]): 
           <a:bodyPr anchorCtr="0" anchor="t" bIns="91425" lIns="91425" spcFirstLastPara="1" rIns="91425" wrap="square" tIns="91425"><a:noAutofit/></a:bodyPr>
           <a:lstStyle/>
           ${makeBulletPara("How different is it from any of the other existing ideas?", "", 1350, 40, 30)}
-          ${makeBulletPara("  • Local-First Edge Durability: ", "Unlike cloud-only disaster apps that stall with spinners when cell towers flood, Resilia operates 100% offline via client-side IndexedDB with sub-15ms write latency.", 1250, 20, 20)}
+          ${makeBulletPara("  • Local-First Edge Durability: ", "Unlike cloud-only disaster apps that stall with spinners when cell towers flood, Resilia operates via local browser caching for degraded networks with sub-15ms write latency.", 1250, 20, 20)}
           ${makeBulletPara("  • Role-Tailored Ground Operations: ", "Dedicated cockpits for Residents, Responders, and Coordinators instead of generic forms, preventing operational friction during mass evacuations.", 1250, 20, 40)}
           ${makeBulletPara("How will it be able to solve the problem?", "", 1350, 40, 30)}
           ${makeBulletPara("  • Sub-Second Local Logging: ", "Citizen reports commit instantly to device storage and queue for automatic sync the moment an uplink blinks on.", 1250, 20, 20)}
@@ -675,67 +683,19 @@ function generateContentSlideXml(slideNum: number, data: typeof slidesData[0]): 
         </p:txBody>
       </p:sp>`;
   } else if (slideNum === 6) {
-    // Process flow diagram: 5 stages of disaster lifecycle
-    const stages = [
-      { num: "1", title: "Ingestion", sub: "Citizen SOS / River sensor Level 3 -> Local DB" },
-      { num: "2", title: "Dual Triage", sub: "Gemini online clustering / 0-100 score offline" },
-      { num: "3", title: "Authorization", sub: "Incident Commander signs digital dispatch" },
-      { num: "4", title: "Field Action", sub: "Responders execute START triage & QR bands" },
-      { num: "5", title: "Aid & Sync", sub: "Ayuda QR scan with 24h cooldown -> Cloud sync" }
-    ];
-
-    let boxesXml = '';
-    const startX = 350000;
-    const boxW = 1580000;
-    const gap = 135000;
-    const boxY = 1450000;
-    const boxH = 1400000;
-
-    stages.forEach((st, idx) => {
-      const bx = startX + idx * (boxW + gap);
-      boxesXml += `
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="${shapeId++}" name="StageBox_${idx}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="${bx}" y="${boxY}"/><a:ext cx="${boxW}" cy="${boxH}"/></a:xfrm>
-          <a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 8000"/></a:avLst></p:prstGeom>
-          <a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill>
-          <a:ln w="12700"><a:solidFill><a:srgbClr val="CBD5E1"/></a:solidFill></a:ln>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr anchor="ctr" anchorCtr="0" bIns="91425" lIns="91425" rIns="91425" tIns="91425" wrap="square"/>
-          <a:lstStyle/>
-          <a:p>
-            <a:pPr algn="ctr"><a:buNone/></a:pPr>
-            <a:r><a:rPr lang="en-GB" sz="1100" b="1"><a:solidFill><a:srgbClr val="2563EB"/></a:solidFill><a:latin typeface="Google Sans Flex SemiBold"/></a:rPr><a:t>STAGE ${st.num}</a:t></a:r>
-          </a:p>
-          <a:p>
-            <a:pPr algn="ctr"><a:spcBef><a:spcPts val="40"/></a:spcBef><a:buNone/></a:pPr>
-            <a:r><a:rPr lang="en-GB" sz="1200" b="1"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Google Sans Flex SemiBold"/></a:rPr><a:t>${escapeXml(st.title)}</a:t></a:r>
-          </a:p>
-          <a:p>
-            <a:pPr algn="ctr"><a:spcBef><a:spcPts val="40"/></a:spcBef><a:buNone/></a:pPr>
-            <a:r><a:rPr lang="en-GB" sz="950"><a:solidFill><a:srgbClr val="475569"/></a:solidFill><a:latin typeface="Google Sans Flex"/></a:rPr><a:t>${escapeXml(st.sub)}</a:t></a:r>
-          </a:p>
-        </p:txBody>
-      </p:sp>`;
-    });
+    // Process flow diagram: crisp high-resolution diagram image embedded cleanly into official template
+    // Exact 2.2727:1 aspect ratio matching 2500x1100 PNG (0.00% distortion)
+    const imgW = 8000000;
+    const imgH = 3520000;
+    const startX = 572000;
+    const startY = 1420000;
 
     contentXml = `
-      ${boxesXml}
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="${shapeId++}" name="Content_ProcessDetails"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
-        <p:spPr><a:xfrm><a:off x="350000" y="3050000"/><a:ext cx="8450000" cy="1900000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></p:spPr>
-        <p:txBody>
-          <a:bodyPr anchorCtr="0" anchor="t" bIns="0" lIns="0" spcFirstLastPara="1" rIns="0" wrap="square" tIns="0"><a:noAutofit/></a:bodyPr>
-          <a:lstStyle/>
-          ${makeBulletPara("1. Incident Ingestion: ", "Citizen triggers SOS or river water level telemetry exceeds Alarm Level 3 (18.0m). Event commits instantly to local IndexedDB with sub-15ms latency.", 1250, 40, 20)}
-          ${makeBulletPara("2. Dual-Engine AI Triage: ", "Google Gemini 3.8 Flash clusters spatial flood reports online; deterministic rules assign transparent 0–100 vulnerability score offline.", 1250, 20, 20)}
-          ${makeBulletPara("3. Coordinator Authorization: ", "Human Incident Commander reviews structured triage evidence, inspects shelter capacity, and signs digital dispatch authorization.", 1250, 20, 20)}
-          ${makeBulletPara("4. Field Responder Execution: ", "Mobile rescue teams receive mission route, navigate offline, execute START triage tagging, and assign QR wristbands.", 1250, 20, 20)}
-          ${makeBulletPara("5. Shelter Intake & Idempotent Sync: ", "Evacuees check in via QR, receive relief kits with 24h cooldown; Sync Agent pushes records to Cloud Run when uplink blinks on.", 1250, 20, 20)}
-        </p:txBody>
-      </p:sp>`;
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="${shapeId++}" name="Img_ProcessFlow" title="process_flow_diagram.png"/><p:cNvPicPr preferRelativeResize="0"/><p:nvPr/></p:nvPicPr>
+        <p:blipFill><a:blip r:embed="rIdImgProcessFlow"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="${startX}" y="${startY}"/><a:ext cx="${imgW}" cy="${imgH}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln w="12700"><a:solidFill><a:srgbClr val="CBD5E1"/></a:solidFill></a:ln></p:spPr>
+      </p:pic>`;
   } else if (slideNum === 7) {
     // Wireframes: 3 role phone screenshots side by side on clean white template
     const phoneW = 2500000;
@@ -790,59 +750,19 @@ function generateContentSlideXml(slideNum: number, data: typeof slidesData[0]): 
         </p:txBody>
       </p:sp>`;
   } else if (slideNum === 8) {
-    // Architecture diagram: 3 clean tier boxes across white template
-    const tierW = 8400000;
-    const tierH = 980000;
-    const startY = 1450000;
-    const gap = 160000;
-    const x = 370000;
+    // Architecture diagram: crisp high-resolution diagram image embedded cleanly into official template
+    // Exact 2.2727:1 aspect ratio matching 2500x1100 PNG (0.00% distortion)
+    const imgW = 8000000;
+    const imgH = 3520000;
+    const startX = 572000;
+    const startY = 1420000;
 
-    const tiers = [
-      {
-        tag: "TIER 1 — CLOUD INTELLIGENCE (GOOGLE CLOUD PLATFORM)",
-        color: "2563EB",
-        desc: "Google Gemini 3.8 Flash via @google/genai, Google Cloud Run serverless microservices, Cloud Firestore datastore, Google Maps Platform geospatial routing"
-      },
-      {
-        tag: "TIER 2 — EDGE RESILIENCE (BROWSER PWA & LOCAL MESH)",
-        color: "059669",
-        desc: "Browser IndexedDB across 15 structured stores (<15ms latency), Local Deterministic Agent Orchestrator, Service Worker (Workbox asset pre-caching)"
-      },
-      {
-        tag: "TIER 3 — BI-DIRECTIONAL RECONNECTION & SYNCHRONIZATION",
-        color: "D97706",
-        desc: "Idempotent Sync Agent with UUID transaction journal, SHA-256 conflict hashes, exponential backoff health probing (/api/v1/health), zero-overdraft ledger"
-      }
-    ];
-
-    let tiersXml = '';
-    tiers.forEach((t, idx) => {
-      const ty = startY + idx * (tierH + gap);
-      tiersXml += `
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="${shapeId++}" name="TierBox_${idx}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="${x}" y="${ty}"/><a:ext cx="${tierW}" cy="${tierH}"/></a:xfrm>
-          <a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 6000"/></a:avLst></p:prstGeom>
-          <a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill>
-          <a:ln w="12700"><a:solidFill><a:srgbClr val="CBD5E1"/></a:solidFill></a:ln>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr anchor="ctr" anchorCtr="0" bIns="120000" lIns="160000" rIns="160000" tIns="120000" wrap="square"/>
-          <a:lstStyle/>
-          <a:p>
-            <a:pPr algn="l"><a:buNone/></a:pPr>
-            <a:r><a:rPr lang="en-GB" sz="1150" b="1"><a:solidFill><a:srgbClr val="${t.color}"/></a:solidFill><a:latin typeface="Google Sans Flex SemiBold"/></a:rPr><a:t>${escapeXml(t.tag)}</a:t></a:r>
-          </a:p>
-          <a:p>
-            <a:pPr algn="l"><a:spcBef><a:spcPts val="40"/></a:spcBef><a:buNone/></a:pPr>
-            <a:r><a:rPr lang="en-GB" sz="1100"><a:solidFill><a:srgbClr val="334155"/></a:solidFill><a:latin typeface="Google Sans Flex"/></a:rPr><a:t>${escapeXml(t.desc)}</a:t></a:r>
-          </a:p>
-        </p:txBody>
-      </p:sp>`;
-    });
-
-    contentXml = tiersXml;
+    contentXml = `
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="${shapeId++}" name="Img_Architecture" title="architecture_diagram.png"/><p:cNvPicPr preferRelativeResize="0"/><p:nvPr/></p:nvPicPr>
+        <p:blipFill><a:blip r:embed="rIdImgArch"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="${startX}" y="${startY}"/><a:ext cx="${imgW}" cy="${imgH}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln w="12700"><a:solidFill><a:srgbClr val="CBD5E1"/></a:solidFill></a:ln></p:spPr>
+      </p:pic>`;
   } else if (slideNum === 11) {
     // Snapshots: 4 prototype images in a 2x2 grid
     const imgW = 4050000;

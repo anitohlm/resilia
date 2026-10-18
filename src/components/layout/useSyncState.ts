@@ -41,10 +41,19 @@ export function useSyncState() {
       refreshPending();
     };
 
+    const handleConnectivityUpdate = () => {
+      refreshPending();
+      setStatus(syncClient.getStatus());
+      setIsSyncing(syncClient.isCurrentlySyncing());
+      setIsSimulatedOffline(syncClient.isSimulatingOffline());
+    };
+
     window.addEventListener('resilia_sync_start', handleSyncStart);
     window.addEventListener('resilia_sync_end', handleSyncEnd);
     window.addEventListener('resilia_sync_complete', handleSyncEnd);
     window.addEventListener('resilia_local_write', handleLocalWrite);
+    window.addEventListener('resilia_internet_lost', handleConnectivityUpdate);
+    window.addEventListener('resilia_internet_restored', handleConnectivityUpdate);
 
     return () => {
       unsub();
@@ -52,6 +61,8 @@ export function useSyncState() {
       window.removeEventListener('resilia_sync_end', handleSyncEnd);
       window.removeEventListener('resilia_sync_complete', handleSyncEnd);
       window.removeEventListener('resilia_local_write', handleLocalWrite);
+      window.removeEventListener('resilia_internet_lost', handleConnectivityUpdate);
+      window.removeEventListener('resilia_internet_restored', handleConnectivityUpdate);
     };
   }, [refreshPending]);
 

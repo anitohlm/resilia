@@ -167,6 +167,8 @@ export interface Incident {
   responderNotes?: string;
   supportingReportsCount: number;
   contradictingReportsCount: number;
+  hasBackupRequest?: boolean;
+  backupDetails?: BackupDetails;
 }
 
 export type VerificationState =

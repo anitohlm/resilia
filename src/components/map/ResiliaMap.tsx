@@ -98,6 +98,9 @@ export const ResiliaMap: React.FC<ResiliaMapProps> = ({
       apiLoadingStatus === APILoadingStatus.FAILED ||
       apiLoadingStatus === APILoadingStatus.AUTH_FAILURE
     ) {
+      console.warn(
+        `[Resilia Map] Google Maps API failed to load (status: ${apiLoadingStatus}). Switching to Air-Gapped Vector Cartography.`
+      );
       setUseOfflineFallback(true);
       setAutoFallbackTriggered(true);
     }
@@ -105,6 +108,9 @@ export const ResiliaMap: React.FC<ResiliaMapProps> = ({
     // Google Maps Platform invokes window.gm_authFailure() when an API key is restricted, invalid, or quota-exceeded
     const originalGmAuthFailure = (window as any).gm_authFailure;
     (window as any).gm_authFailure = () => {
+      console.warn(
+        '[Resilia Map] Google Maps gm_authFailure triggered. Check API key HTTP Referrer restrictions in Google Cloud Console (ensure https://resilia-70100.web.app/* and https://resilia-70100.firebaseapp.com/* are allowed).'
+      );
       setUseOfflineFallback(true);
       setAutoFallbackTriggered(true);
       if (typeof originalGmAuthFailure === 'function') {
@@ -112,7 +118,11 @@ export const ResiliaMap: React.FC<ResiliaMapProps> = ({
       }
     };
 
-    const handleAuthError = () => {
+    const handleAuthError = (event?: any) => {
+      console.warn(
+        '[Resilia Map] Google Maps authentication or quota event triggered. Switching to offline vector cartography.',
+        event
+      );
       setUseOfflineFallback(true);
       setAutoFallbackTriggered(true);
     };
@@ -151,9 +161,21 @@ export const ResiliaMap: React.FC<ResiliaMapProps> = ({
   // (e.g. adblocker, corporate firewall, flaky cellular, or quota error),
   // automatically show the offline vector map so the user never sees an empty void.
   useEffect(() => {
+    if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY && !useOfflineFallback) {
+      console.warn(
+        '[Resilia Map] VITE_GOOGLE_MAPS_API_KEY is not defined. Falling back to Air-Gapped Vector Cartography. Ensure the secret is added in GitHub Actions secrets or .env.'
+      );
+      setAutoFallbackTriggered(true);
+      setUseOfflineFallback(true);
+      return;
+    }
+
     if (!apiIsLoaded && !useOfflineFallback) {
       const timer = setTimeout(() => {
         if (!apiIsLoaded) {
+          console.warn(
+            '[Resilia Map] Google Maps API load timed out (3.5s). Switching to Air-Gapped Vector Cartography.'
+          );
           setAutoFallbackTriggered(true);
           setUseOfflineFallback(true);
         }

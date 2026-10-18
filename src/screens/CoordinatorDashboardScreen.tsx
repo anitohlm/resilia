@@ -91,6 +91,7 @@ import {
   Alert,
   AssistanceRequest,
   AuditEntry,
+  BackupDetails,
   Community,
   Incident,
   InventoryMovement,
@@ -315,6 +316,12 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
   const [isDispatching, setIsDispatching] = useState(false);
   const [isGeneratingMission, setIsGeneratingMission] = useState(false);
   const [selectedBackupRequest, setSelectedBackupRequest] = useState<AssistanceRequest | null>(null);
+  const [selectedBackupIncident, setSelectedBackupIncident] = useState<{
+    incident: Incident;
+    backupDetails?: BackupDetails;
+    linkedMission?: Mission;
+    linkedRequest?: AssistanceRequest;
+  } | null>(null);
 
   // Shelter quick update state
   const [editingShelter, setEditingShelter] = useState<Shelter | null>(null);
@@ -409,10 +416,21 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
     };
     handleSafetyUpdate();
     window.addEventListener('resilia_safety_checkin_updated', handleSafetyUpdate);
+    window.addEventListener('resilia_sync_complete', handleSafetyUpdate);
+    window.addEventListener('resilia_local_write', handleSafetyUpdate);
+    const handleStorage = (e: StorageEvent) => {
+      if (!e.key || e.key === 'resilia_safety_checkins_v1') {
+        handleSafetyUpdate();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
     return () => {
       window.removeEventListener('resilia_safety_checkin_updated', handleSafetyUpdate);
+      window.removeEventListener('resilia_sync_complete', handleSafetyUpdate);
+      window.removeEventListener('resilia_local_write', handleSafetyUpdate);
+      window.removeEventListener('storage', handleStorage);
     };
-  }, [safetySearch, safetyFilter]);
+  }, [safetySearch, safetyFilter, activeTab]);
 
   // Refresh pending sync queue
   useEffect(() => {
@@ -447,7 +465,15 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
   // KPI Calculations
   const activeIncidents = incidents.filter((i) => i.status !== 'RESOLVED');
   const unverifiedIncidents = incidents.filter((i) => i.status === 'REPORTED');
-  const pendingRequests = assistanceRequests.filter((r) => r.status === 'PENDING' || r.status === 'TRIAGED');
+  const pendingRequests = assistanceRequests.filter((r) => {
+    const linkedMission = r.assignedMissionId
+      ? missions.find((m) => m.id === r.assignedMissionId)
+      : missions.find(
+          (m) => m.assistanceRequestId === r.id || m.evidenceRecordIds?.includes(r.id)
+        );
+    if (r.status === 'FULFILLED' || linkedMission?.status === 'COMPLETED') return false;
+    return r.status === 'PENDING' || r.status === 'TRIAGED';
+  });
   const criticalRequests = pendingRequests.filter((r) => r.priority === 'CRITICAL');
   const activeMissions = missions.filter((m) => m.status === 'ASSIGNED' || m.status === 'ACCEPTED' || m.status === 'IN_PROGRESS');
   const proposedMissions = missions.filter((m) => m.status === 'PROPOSED');
@@ -2044,6 +2070,7 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                         <th className="py-3 px-4">Evidence</th>
                         <th className="py-3 px-4">Status</th>
                         <th className="py-3 px-4">Assigned Unit</th>
+                        <th className="py-3 px-4">Backup</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -2061,85 +2088,139 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                         if (filtered.length === 0) {
                           return (
                             <tr>
-                              <td colSpan={7} className="py-8 text-center text-neutral-500 text-xs">
+                              <td colSpan={8} className="py-8 text-center text-neutral-500 text-xs">
                                 No incident reports match your current search and filter criteria.
                               </td>
                             </tr>
                           );
                         }
 
-                        return filtered.map((inc) => (
-                          <tr key={inc.id} className="hover:bg-neutral-50/60 transition">
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <div className="font-semibold text-neutral-900">{inc.type.replace('_', ' ')}</div>
-                              <span
-                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide mt-0.5 border ${
-                                  inc.severity === 'CRITICAL'
-                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                    : inc.severity === 'HIGH'
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                }`}
-                              >
-                                {inc.severity}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 max-w-xs">
-                              <div className="font-medium text-neutral-900">{inc.title}</div>
-                              <div className="text-[11px] text-neutral-500">{inc.locationName}</div>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <div className="font-medium text-neutral-900">{inc.reporterName}</div>
-                              <div className="text-[11px] text-neutral-400 font-mono tabular-nums">
-                                {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-neutral-700 whitespace-nowrap">
-                              {inc.floodDepthCm ? `${inc.floodDepthCm} cm depth` : 'None'}
-                              {inc.photoUrl && (
-                                <span className="ml-1 text-[11px] text-emerald-700 font-semibold">• Photo</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
-                                  inc.status === 'VERIFIED'
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : inc.status === 'CONTRADICTED'
-                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                    : inc.status === 'RESOLVED'
-                                    ? 'bg-neutral-100 text-neutral-600 border-neutral-200'
-                                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                                }`}
-                              >
-                                {inc.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              {inc.assignedResponderName ? (
-                                <span className="font-medium text-neutral-900">{inc.assignedResponderName}</span>
-                              ) : (
-                                <span className="text-neutral-400">Unassigned</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={() => setAssigningIncident(inc)}
-                                className="px-2.5 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs transition shadow-2xs"
-                              >
-                                {inc.assignedResponderName ? 'Reassign' : 'Dispatch'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setVerifyingIncident(inc)}
-                                className="px-2.5 py-1 rounded-lg bg-white hover:bg-neutral-50 text-neutral-900 font-medium text-xs border border-neutral-200 transition shadow-2xs"
-                              >
-                                Triage
-                              </button>
-                            </td>
-                          </tr>
-                        ));
+                        return filtered.map((inc) => {
+                          const linkedMission = missions.find(
+                            (m) =>
+                              m.evidenceRecordIds?.includes(inc.id) ||
+                              m.id === inc.assignedResponderId ||
+                              (m.title && inc.title && m.title.toLowerCase().includes(inc.title.toLowerCase()))
+                          );
+                          const linkedRequest = assistanceRequests.find(
+                            (r) =>
+                              r.id === inc.id ||
+                              (linkedMission &&
+                                (linkedMission.assistanceRequestId === r.id ||
+                                  linkedMission.evidenceRecordIds?.includes(r.id)))
+                          );
+
+                          const hasBackup = Boolean(
+                            inc.hasBackupRequest ||
+                              inc.backupDetails?.requested ||
+                              linkedMission?.hasBackupRequest ||
+                              linkedMission?.backupDetails?.requested ||
+                              linkedRequest?.hasBackupRequest ||
+                              linkedRequest?.backupDetails?.requested
+                          );
+                          const backupObj =
+                            inc.backupDetails || linkedMission?.backupDetails || linkedRequest?.backupDetails;
+
+                          return (
+                            <tr key={inc.id} className="hover:bg-neutral-50/60 transition">
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <div className="font-semibold text-neutral-900">{inc.type.replace('_', ' ')}</div>
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide mt-0.5 border ${
+                                    inc.severity === 'CRITICAL'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : inc.severity === 'HIGH'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  }`}
+                                >
+                                  {inc.severity}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 max-w-xs">
+                                <div className="font-medium text-neutral-900">{inc.title}</div>
+                                <div className="text-[11px] text-neutral-500">{inc.locationName}</div>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <div className="font-medium text-neutral-900">{inc.reporterName}</div>
+                                <div className="text-[11px] text-neutral-400 font-mono tabular-nums">
+                                  {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-neutral-700 whitespace-nowrap">
+                                {inc.floodDepthCm ? `${inc.floodDepthCm} cm depth` : 'None'}
+                                {inc.photoUrl && (
+                                  <span className="ml-1 text-[11px] text-emerald-700 font-semibold">• Photo</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
+                                    inc.status === 'VERIFIED'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : inc.status === 'CONTRADICTED'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : inc.status === 'RESOLVED'
+                                      ? 'bg-neutral-100 text-neutral-600 border-neutral-200'
+                                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  }`}
+                                >
+                                  {inc.status}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                {inc.assignedResponderName ? (
+                                  <span className="font-medium text-neutral-900">{inc.assignedResponderName}</span>
+                                ) : (
+                                  <span className="text-neutral-400">Unassigned</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                {hasBackup && backupObj ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedBackupIncident({
+                                        incident: { ...inc, backupDetails: backupObj },
+                                        backupDetails: backupObj,
+                                        linkedMission,
+                                        linkedRequest,
+                                      })
+                                    }
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 transition cursor-pointer shadow-2xs group"
+                                    title="Click to view responder backup details"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                                    <span>Yes</span>
+                                    <span className="text-[11px] font-medium text-rose-600 underline group-hover:text-rose-800 ml-0.5">
+                                      (View Details)
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-neutral-400 bg-neutral-100 border border-neutral-200">
+                                    No
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={() => setAssigningIncident(inc)}
+                                  className="px-2.5 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs transition shadow-2xs"
+                                >
+                                  {inc.assignedResponderName ? 'Reassign' : 'Dispatch'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setVerifyingIncident(inc)}
+                                  className="px-2.5 py-1 rounded-lg bg-white hover:bg-neutral-50 text-neutral-900 font-medium text-xs border border-neutral-200 transition shadow-2xs"
+                                >
+                                  Triage
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        });
                       })()}
                     </tbody>
                   </table>
@@ -2224,137 +2305,148 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
                           );
                         }
 
-                        return filtered.map((req) => (
-                          <tr key={req.id} className="hover:bg-neutral-50/60 transition">
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
-                                  req.priority === 'CRITICAL'
-                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                    : req.priority === 'HIGH'
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                }`}
-                              >
-                                {req.priority} ({req.priorityScore})
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <div className="font-semibold text-neutral-900">{req.residentName}</div>
-                              <div className="text-[11px] text-neutral-500 font-mono tabular-nums">{req.contactPhone}</div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="font-medium text-neutral-900 font-mono tabular-nums">{req.peopleCount} pax</div>
-                              <div className="text-[10px] text-neutral-500 flex flex-wrap gap-1 mt-0.5">
-                                {req.vulnerabilityNeeds.wheelchairUser && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
-                                    Wheelchair
-                                  </span>
-                                )}
-                                {req.vulnerabilityNeeds.bedridden && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                    Bedridden
-                                  </span>
-                                )}
-                                {req.vulnerabilityNeeds.elderlyCount > 0 && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
-                                    {req.vulnerabilityNeeds.elderlyCount} Senior
-                                  </span>
-                                )}
-                                {req.vulnerabilityNeeds.infantCount > 0 && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
-                                    {req.vulnerabilityNeeds.infantCount} Infant
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 max-w-xs text-neutral-800">{req.locationName}</td>
-                            <td className="py-3 px-4 max-w-xs">
-                              <div className="font-semibold text-neutral-900">{req.category.replace('_', ' ')}</div>
-                              <div className="text-[11px] text-neutral-500 line-clamp-1">{req.description}</div>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
-                                  req.status === 'FULFILLED'
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : req.status === 'ASSIGNED'
-                                    ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                    : req.status === 'TRIAGED'
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                    : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
-                                }`}
-                              >
-                                {req.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              {(() => {
-                                const linkedMission = req.assignedMissionId
-                                  ? missions.find((m) => m.id === req.assignedMissionId)
-                                  : missions.find(
-                                      (m) =>
-                                        m.assistanceRequestId === req.id ||
-                                        m.evidenceRecordIds?.includes(req.id)
-                                    );
-                                const hasBackup = Boolean(
-                                  req.hasBackupRequest ||
-                                    req.backupDetails?.requested ||
-                                    linkedMission?.hasBackupRequest ||
-                                    linkedMission?.backupDetails?.requested
-                                );
-                                const backupObj = req.backupDetails || linkedMission?.backupDetails;
+                        return filtered.map((req) => {
+                          const linkedMission = req.assignedMissionId
+                            ? missions.find((m) => m.id === req.assignedMissionId)
+                            : missions.find(
+                                (m) =>
+                                  m.assistanceRequestId === req.id ||
+                                  m.evidenceRecordIds?.includes(req.id)
+                              );
+                          const isFulfilled = req.status === 'FULFILLED' || linkedMission?.status === 'COMPLETED';
+                          const isInProgress = req.status === 'IN_PROGRESS' || linkedMission?.status === 'IN_PROGRESS' || linkedMission?.status === 'ACCEPTED';
+                          const isAssigned = req.status === 'ASSIGNED' || linkedMission?.status === 'ASSIGNED';
+                          const isTriaged = req.status === 'TRIAGED' || linkedMission?.status === 'PROPOSED' || linkedMission?.status === 'APPROVED';
 
-                                if (hasBackup && backupObj) {
-                                  return (
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedBackupRequest({ ...req, backupDetails: backupObj })}
-                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 transition cursor-pointer shadow-2xs group"
-                                      title="Click to view responder backup details"
-                                    >
-                                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                                      <span>Yes</span>
-                                      <span className="text-[11px] font-medium text-rose-600 underline group-hover:text-rose-800 ml-0.5">
-                                        (View Details)
-                                      </span>
-                                    </button>
-                                  );
-                                }
+                          const hasBackup = Boolean(
+                            req.hasBackupRequest ||
+                              req.backupDetails?.requested ||
+                              linkedMission?.hasBackupRequest ||
+                              linkedMission?.backupDetails?.requested
+                          );
+                          const backupObj = req.backupDetails || linkedMission?.backupDetails;
 
-                                return (
+                          return (
+                            <tr key={req.id} className="hover:bg-neutral-50/60 transition">
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
+                                    req.priority === 'CRITICAL'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : req.priority === 'HIGH'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  }`}
+                                >
+                                  {req.priority} ({req.priorityScore})
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <div className="font-semibold text-neutral-900">{req.residentName}</div>
+                                <div className="text-[11px] text-neutral-500 font-mono tabular-nums">{req.contactPhone}</div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="font-medium text-neutral-900 font-mono tabular-nums">{req.peopleCount} pax</div>
+                                <div className="text-[10px] text-neutral-500 flex flex-wrap gap-1 mt-0.5">
+                                  {req.vulnerabilityNeeds.wheelchairUser && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
+                                      Wheelchair
+                                    </span>
+                                  )}
+                                  {req.vulnerabilityNeeds.bedridden && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                      Bedridden
+                                    </span>
+                                  )}
+                                  {req.vulnerabilityNeeds.elderlyCount > 0 && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
+                                      {req.vulnerabilityNeeds.elderlyCount} Senior
+                                    </span>
+                                  )}
+                                  {req.vulnerabilityNeeds.infantCount > 0 && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
+                                      {req.vulnerabilityNeeds.infantCount} Infant
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 max-w-xs text-neutral-800">{req.locationName}</td>
+                              <td className="py-3 px-4 max-w-xs">
+                                <div className="font-semibold text-neutral-900">{req.category.replace('_', ' ')}</div>
+                                <div className="text-[11px] text-neutral-500 line-clamp-1">{req.description}</div>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wide border ${
+                                    isFulfilled
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : isInProgress
+                                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                      : isAssigned
+                                      ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                      : isTriaged
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+                                  }`}
+                                >
+                                  {isFulfilled ? 'FULFILLED' : isInProgress ? 'IN PROGRESS' : isAssigned ? 'ASSIGNED' : isTriaged ? 'TRIAGED' : req.status}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                {hasBackup && backupObj ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedBackupRequest({ ...req, backupDetails: backupObj })}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 transition cursor-pointer shadow-2xs group"
+                                    title="Click to view responder backup details"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                                    <span>Yes</span>
+                                    <span className="text-[11px] font-medium text-rose-600 underline group-hover:text-rose-800 ml-0.5">
+                                      (View Details)
+                                    </span>
+                                  </button>
+                                ) : (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-neutral-400 bg-neutral-100 border border-neutral-200">
                                     No
                                   </span>
-                                );
-                              })()}
-                            </td>
-                            <td className="py-3 px-4 text-right whitespace-nowrap">
-                              {!req.assignedMissionId && req.status === 'PENDING' ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCreateAIMissionProposal(req)}
-                                  disabled={isGeneratingMission}
-                                  className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs transition shadow-2xs"
-                                >
-                                  Generate Mission
-                                </button>
-                              ) : req.status === 'TRIAGED' ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  Mission Proposed
-                                </span>
-                              ) : req.status === 'ASSIGNED' ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-                                  Assigned
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  Fulfilled ✓
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ));
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-right whitespace-nowrap">
+                                {isFulfilled ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Fulfilled ✓
+                                  </span>
+                                ) : isInProgress ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                    In Progress
+                                  </span>
+                                ) : isAssigned ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                                    Assigned
+                                  </span>
+                                ) : isTriaged ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    Mission Proposed
+                                  </span>
+                                ) : !req.assignedMissionId && req.status === 'PENDING' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCreateAIMissionProposal(req)}
+                                    disabled={isGeneratingMission}
+                                    className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs transition shadow-2xs"
+                                  >
+                                    Generate Mission
+                                  </button>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-neutral-100 text-neutral-700 border border-neutral-200">
+                                    {req.status}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        });
                       })()}
                     </tbody>
                   </table>
@@ -4340,6 +4432,22 @@ export const CoordinatorDashboardScreen: React.FC<CoordinatorDashboardProps> = (
             )
           }
           onClose={() => setSelectedBackupRequest(null)}
+          onStatusUpdated={() => {
+            if (onDataChanged) onDataChanged();
+          }}
+        />
+      )}
+
+      {/* Modal 9: Responder Backup Details Modal for Incidents & Reports */}
+      {selectedBackupIncident && (
+        <BackupDetailsModal
+          incident={selectedBackupIncident.incident}
+          request={selectedBackupIncident.linkedRequest}
+          mission={
+            selectedBackupIncident.linkedMission ||
+            missions.find((m) => m.evidenceRecordIds?.includes(selectedBackupIncident.incident.id))
+          }
+          onClose={() => setSelectedBackupIncident(null)}
           onStatusUpdated={() => {
             if (onDataChanged) onDataChanged();
           }}

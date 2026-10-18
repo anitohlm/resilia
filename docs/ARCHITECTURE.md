@@ -8,6 +8,8 @@
 
 ## 1. High-Level Architectural Topology
 
+![Resilia System Architecture Diagram](../public/images/architecture_diagram.png)
+
 ```
                   ┌──────────────────────────────────────────────┐
                   │          GOOGLE CLOUD / INTERNET             │

@@ -38,6 +38,7 @@ import {
 import { AuditRepository } from './services/repositories';
 import { WifiOff } from 'lucide-react';
 import { ToastProvider } from './components/common/Toast';
+import { NetworkSyncNotifier } from './components/layout/NetworkSyncNotifier';
 import { isScreenAllowedForRole, getDefaultScreenForRole } from './services/auth/rbac';
 
 interface AppContentProps {
@@ -326,6 +327,7 @@ export default function App() {
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
       <AuthProvider>
         <ToastProvider>
+          <NetworkSyncNotifier />
           <AppContent
             community={community}
             alerts={alerts}

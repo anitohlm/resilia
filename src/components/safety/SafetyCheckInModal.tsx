@@ -84,9 +84,9 @@ export const SafetyCheckInModal: React.FC<SafetyCheckInModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    safetyCheckInService.recordCheckIn({
+    const entryData = {
       residentName: residentName.trim() || 'Anonymous Resident',
       contactPhone: contactPhone.trim(),
       status,
@@ -95,7 +95,13 @@ export const SafetyCheckInModal: React.FC<SafetyCheckInModalProps> = ({
       familyCount: Number(familyCount) || 1,
       vulnerableCount: Number(vulnerableCount) || 0,
       notes: notes.trim(),
-    });
+      residentId: isCoordinator ? undefined : currentUser.id,
+    };
+    if (isCoordinator) {
+      safetyCheckInService.recordCheckIn(entryData);
+    } else {
+      await safetyCheckInService.recordResidentCheckIn(entryData, currentUser.id);
+    }
     setSubmittedSuccess(true);
     refreshData();
     setTimeout(() => {

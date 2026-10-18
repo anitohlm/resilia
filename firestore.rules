@@ -65,6 +65,13 @@ service cloud.firestore {
       allow update: if isResponder();
     }
 
+    // Safety Check-Ins: Self-reported citizen welfare records
+    match /safetyCheckIns/{checkInId} {
+      allow read, create: if true;
+      allow update: if isCoordinator() || (isAuthenticated() && resource.data.residentId == request.auth.uid);
+      allow delete: if isCoordinator();
+    }
+
     // Sync Events: Durable append-only event stream
     match /syncEvents/{eventId} {
       allow create: if true;

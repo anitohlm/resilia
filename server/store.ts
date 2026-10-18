@@ -293,6 +293,7 @@ class CentralCloudStore {
       missions: filterSince(this.missions.values()),
       reports: filterSince(this.reports.values()),
       alerts: filterSince(this.alerts.values()),
+      safetyCheckIns: filterSince(this.safetyCheckIns.values()),
       triageRecords: filterSince(this.triageRecords.values()),
       rationDistributions: filterSince(this.rationDistributions.values()),
       missingPersons: filterSince(this.missingPersons.values()),

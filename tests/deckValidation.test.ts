@@ -173,12 +173,17 @@ try {
     const illegalNewlineInTextTag = /<a:t>[^<]*[\r\n][^<]*<\/a:t>/g.test(slideContent);
     assert(!illegalNewlineInTextTag, `Slide ${i} has zero illegal literal newline characters inside <a:t>`);
 
+    const illegalClaimInSlide = /100%|offline[\s-]first/i.test(slideContent);
+    assert(!illegalClaimInSlide, `Slide ${i} OpenXML has zero "100%" or "offline-first" claims`);
+
     const notesFile = path.join(inspectDir, `ppt/notesSlides/notesSlide${i}.xml`);
     assert(fs.existsSync(notesFile), `Notes slide ppt/notesSlides/notesSlide${i}.xml exists`);
 
     const notesContent = fs.readFileSync(notesFile, 'utf8');
     assert(notesContent.includes('Word-for-Word Speaker Script'), `Notes slide ${i} contains speaker script header`);
     assert(notesContent.includes(escapeXml(slidesData[i - 1].notes.substring(0, 25))), `Notes slide ${i} contains verbatim script`);
+    const illegalClaimInNotes = /100%|offline[\s-]first/i.test(notesContent);
+    assert(!illegalClaimInNotes, `Notes slide ${i} OpenXML has zero "100%" or "offline-first" claims`);
   }
 
   // 4e. Presentation Embedded Media & Pictures Validation
@@ -193,7 +198,9 @@ try {
     'feature_bayanihan_aid.jpg',
     'resilia_phone_resident.jpg',
     'resilia_phone_responder.jpg',
-    'resilia_phone_coordinator.jpg'
+    'resilia_phone_coordinator.jpg',
+    'architecture_diagram.png',
+    'process_flow_diagram.png'
   ];
 
   for (const imgName of expectedImages) {
@@ -204,8 +211,8 @@ try {
     assert(fs.existsSync(pptxMediaPath) && fs.statSync(pptxMediaPath).size > 50000, `PPTX media package contains ${imgName}`);
   }
 
-  // Verify slide relationship and <p:pic> markup for image-bearing slides (1, 2, 5, 7, 11, 16)
-  const imageSlides = [1, 2, 5, 7, 11, 16];
+  // Verify slide relationship and <p:pic> markup for image-bearing slides (1, 2, 5, 6, 7, 8, 11, 16)
+  const imageSlides = [1, 2, 5, 6, 7, 8, 11, 16];
   for (const sNum of imageSlides) {
     const relFile = path.join(inspectDir, `ppt/slides/_rels/slide${sNum}.xml.rels`);
     const relContent = fs.readFileSync(relFile, 'utf8');
@@ -220,6 +227,12 @@ try {
   const slide5Rel = fs.readFileSync(path.join(inspectDir, 'ppt/slides/_rels/slide5.xml.rels'), 'utf8');
   assert(slide5Rel.includes('feature_beacon_sos.jpg'), 'Slide 5 rels links to feature_beacon_sos.jpg');
 
+  // Slide 6 Process Flow Diagram Image verification
+  const slide6Rel = fs.readFileSync(path.join(inspectDir, 'ppt/slides/_rels/slide6.xml.rels'), 'utf8');
+  assert(slide6Rel.includes('process_flow_diagram.png'), 'Slide 6 rels links to process_flow_diagram.png');
+  const slide6Xml = fs.readFileSync(path.join(inspectDir, 'ppt/slides/slide6.xml'), 'utf8');
+  assert(slide6Xml.includes('rIdImgProcessFlow'), 'Slide 6 DrawingML references rIdImgProcessFlow');
+
   // Slide 7 Three Account Mobile Phone Screenshots verification
   const slide7Rel = fs.readFileSync(path.join(inspectDir, 'ppt/slides/_rels/slide7.xml.rels'), 'utf8');
   assert(slide7Rel.includes('resilia_phone_resident.jpg'), 'Slide 7 rels links to Resident phone screenshot');
@@ -229,6 +242,12 @@ try {
   assert(slide7Xml.includes('rIdImgResident'), 'Slide 7 DrawingML references rIdImgResident');
   assert(slide7Xml.includes('rIdImgResponder'), 'Slide 7 DrawingML references rIdImgResponder');
   assert(slide7Xml.includes('rIdImgCoordinator'), 'Slide 7 DrawingML references rIdImgCoordinator');
+
+  // Slide 8 Architecture Diagram Image verification
+  const slide8Rel = fs.readFileSync(path.join(inspectDir, 'ppt/slides/_rels/slide8.xml.rels'), 'utf8');
+  assert(slide8Rel.includes('architecture_diagram.png'), 'Slide 8 rels links to architecture_diagram.png');
+  const slide8Xml = fs.readFileSync(path.join(inspectDir, 'ppt/slides/slide8.xml'), 'utf8');
+  assert(slide8Xml.includes('rIdImgArch'), 'Slide 8 DrawingML references rIdImgArch');
 
   // Slide 11 Four Prototype Photos verification
   const slide11Rel = fs.readFileSync(path.join(inspectDir, 'ppt/slides/_rels/slide11.xml.rels'), 'utf8');
@@ -296,6 +315,51 @@ try {
     assert(fs.existsSync(publicPath), `public/images contains ${tplImg}`);
     assert(htmlContent.includes(`/images/${tplImg}`), `HTML presentation embeds /images/${tplImg}`);
   }
+
+  // --- 7. Transparent Phrasing & Claim Validation (Zero "100%" or "offline-first") ---
+  console.log('\n--- 7. Transparent Phrasing & Claim Validation ---');
+  const prohibitedClaimRegex = /100%|offline[\s-]first/i;
+
+  // 7a. Diagram generator scripts
+  const diagramScriptFiles = [
+    'scripts/generate_architecture_diagram.ps1',
+    'scripts/generate_process_flow_diagram.ps1',
+    'scripts/generate_benchmark_diagram.ps1',
+    'scripts/generate_app_video_frames.ps1',
+    'scripts/generate_video_slides.ps1'
+  ];
+  for (const scriptRelPath of diagramScriptFiles) {
+    const fullScriptPath = path.resolve(process.cwd(), scriptRelPath);
+    assert(fs.existsSync(fullScriptPath), `${scriptRelPath} exists`);
+    const scriptContent = fs.readFileSync(fullScriptPath, 'utf8');
+    assert(!prohibitedClaimRegex.test(scriptContent), `${scriptRelPath} contains neither "100%" nor "offline-first"`);
+  }
+
+  // 7b. Deck generator script & slidesData
+  const deckGenPath = path.resolve(process.cwd(), 'scripts/generateDeckPptx.ts');
+  const deckGenContent = fs.readFileSync(deckGenPath, 'utf8');
+  assert(!prohibitedClaimRegex.test(deckGenContent), 'scripts/generateDeckPptx.ts contains neither "100%" nor "offline-first"');
+
+  for (let i = 0; i < slidesData.length; i++) {
+    const slideJson = JSON.stringify(slidesData[i]);
+    assert(!prohibitedClaimRegex.test(slideJson), `slidesData for Slide ${i + 1} contains neither "100%" nor "offline-first"`);
+  }
+
+  // 7c. Web presentation (excluding CSS percent declarations)
+  const htmlNoCss = htmlContent.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/style="[^"]*"/gi, '');
+  assert(!prohibitedClaimRegex.test(htmlNoCss), 'public/presentation.html content contains neither "100%" nor "offline-first"');
+
+  if (fs.existsSync(distDir)) {
+    const distHtmlPath = path.resolve(distDir, 'presentation.html');
+    if (fs.existsSync(distHtmlPath)) {
+      const distHtmlContent = fs.readFileSync(distHtmlPath, 'utf8');
+      const distHtmlNoCss = distHtmlContent.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/style="[^"]*"/gi, '');
+      assert(!prohibitedClaimRegex.test(distHtmlNoCss), 'dist/presentation.html content contains neither "100%" nor "offline-first"');
+    }
+  }
+
+  // 7d. docs/PITCH_DECK.md blueprint
+  assert(!prohibitedClaimRegex.test(blueprintContent), 'docs/PITCH_DECK.md contains neither "100%" nor "offline-first"');
 
 } finally {
   if (fs.existsSync(inspectDir)) {

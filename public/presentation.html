@@ -308,6 +308,28 @@
       color: #64748b;
     }
 
+    /* Diagram Images (Architecture & Process Flow) */
+    .diagram-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 2px 0;
+    }
+
+    .diagram-img {
+      max-width: 100%;
+      max-height: 430px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
     /* Architecture Tiers */
     .arch-tiers-list {
       display: flex;
@@ -540,7 +562,7 @@
             <div><strong>c. Problem Statement:</strong> AI for Disaster Risk Reduction &amp; Resilient Communities: Overcoming the 72-Hour Blackout Crisis in Typhoon &amp; Flood Disasters (UN SDG 11 &amp; SDG 13)</div>
           </div>
           <div style="margin-top: 24px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12.5px; color: #475569;">
-            <strong>Project Focus:</strong> Offline-First Community Disaster Lifeline pairing Google Gemini 3.8 Flash in the cloud with client IndexedDB edge durability.
+            <strong>Project Focus:</strong> Resilient Community Disaster Lifeline pairing Google Gemini 3.8 Flash in the cloud with client IndexedDB edge durability.
           </div>
         </div>
         <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
@@ -588,7 +610,7 @@
               </li>
               <li class="clean-bullet-item">
                 <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Offline-First Tri-Role Community Coordination:</strong> Tailored, low-friction mobile workflows for Residents (instant SOS beacon &amp; shelter locator), Responders (START casualty triage &amp; QR wristbands), and Coordinators (shelter capacity &amp; cryptographic dispatch gate) operating with zero active internet.</div>
+                <div class="bullet-text"><strong>Tri-Role Community Coordination:</strong> Tailored, low-friction mobile workflows for Residents (instant SOS beacon &amp; shelter locator), Responders (START casualty triage &amp; QR wristbands), and Coordinators (shelter capacity &amp; cryptographic dispatch gate) operating with zero active internet.</div>
               </li>
               <li class="clean-bullet-item">
                 <span class="bullet-dot">●</span>
@@ -619,7 +641,7 @@
                 <div class="bullet-text">
                   <strong>How different is it from any of the other existing ideas?</strong>
                   <div style="margin-top: 3px; color: #475569;">
-                    • <em>Local-First Edge Durability:</em> Unlike cloud-only apps that freeze when cell towers submerge, Resilia executes complete workflows 100% offline via browser IndexedDB with sub-15ms write latency.<br>
+                    • <em>Local-First Edge Durability:</em> Unlike cloud-only apps that freeze when cell towers submerge, Resilia executes complete workflows via local browser caching for degraded networks with sub-15ms write latency.<br>
                     • <em>Role-Tailored Ground Operations:</em> Dedicated cockpits for Residents, Responders, and Coordinators instead of generic forms.
                   </div>
                 </div>
@@ -688,40 +710,9 @@
             <div class="slide-subtitle">End-to-End Emergency Lifecycle: Incident Ingestion, AI Triage, Dispatch, and Resolution</div>
           </div>
           <div class="slide-content">
-            <div class="process-stages-grid">
-              <div class="stage-card">
-                <div class="stage-num">Stage 1</div>
-                <div class="stage-title">Ingestion</div>
-                <div class="stage-desc">Citizen SOS / River sensor Level 3 -> Local DB</div>
-              </div>
-              <div class="stage-card">
-                <div class="stage-num">Stage 2</div>
-                <div class="stage-title">Dual Triage</div>
-                <div class="stage-desc">Gemini online clustering / 0-100 score offline</div>
-              </div>
-              <div class="stage-card">
-                <div class="stage-num">Stage 3</div>
-                <div class="stage-title">Authorization</div>
-                <div class="stage-desc">Incident Commander signs digital dispatch</div>
-              </div>
-              <div class="stage-card">
-                <div class="stage-num">Stage 4</div>
-                <div class="stage-title">Field Action</div>
-                <div class="stage-desc">Responders execute START triage &amp; QR bands</div>
-              </div>
-              <div class="stage-card">
-                <div class="stage-num">Stage 5</div>
-                <div class="stage-title">Aid &amp; Sync</div>
-                <div class="stage-desc">Ayuda QR scan with 24h cooldown -> Cloud sync</div>
-              </div>
+            <div class="diagram-container">
+              <img src="/images/process_flow_diagram.png" alt="Resilia Emergency Lifecycle Process Flow Diagram" class="diagram-img">
             </div>
-            <ul class="clean-bullet-list">
-              <li class="clean-bullet-item"><span class="bullet-dot">1.</span><div class="bullet-text"><strong>Incident Ingestion:</strong> Citizen triggers SOS or river water telemetry hits Alarm Level 3 (18.0m). Event commits instantly to local IndexedDB with sub-15ms latency.</div></li>
-              <li class="clean-bullet-item"><span class="bullet-dot">2.</span><div class="bullet-text"><strong>Dual-Engine AI Triage:</strong> Gemini 3.8 Flash clusters spatial flood reports online; deterministic rules assign transparent 0–100 vulnerability score offline.</div></li>
-              <li class="clean-bullet-item"><span class="bullet-dot">3.</span><div class="bullet-text"><strong>Coordinator Authorization:</strong> Human Incident Commander reviews structured triage evidence, inspects shelter capacity, and signs digital dispatch authorization.</div></li>
-              <li class="clean-bullet-item"><span class="bullet-dot">4.</span><div class="bullet-text"><strong>Field Responder Execution:</strong> Mobile rescue teams receive mission route, navigate offline, execute START triage tagging, and assign QR wristbands.</div></li>
-              <li class="clean-bullet-item"><span class="bullet-dot">5.</span><div class="bullet-text"><strong>Shelter Intake &amp; Idempotent Sync:</strong> Evacuees check in via QR, receive relief kits with 24h cooldown; Sync Agent pushes records to Cloud Run when uplink blinks on.</div></li>
-            </ul>
           </div>
         </div>
         <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
@@ -767,19 +758,8 @@
             <div class="slide-subtitle">Hybrid Dual-Engine Architecture: Google Cloud Platform + Resilient Edge Runtime</div>
           </div>
           <div class="slide-content">
-            <div class="arch-tiers-list">
-              <div class="arch-tier-card">
-                <div class="arch-tier-header" style="color: #2563eb;">Tier 1 — Cloud Intelligence Tier (Google Cloud Platform)</div>
-                <div class="arch-tier-desc">Google Gemini 3.8 Flash via <code>@google/genai</code> (macro clustering &amp; spatial synthesis), Google Cloud Run serverless microservices, Cloud Firestore datastore, Google Maps Platform geospatial routing.</div>
-              </div>
-              <div class="arch-tier-card">
-                <div class="arch-tier-header" style="color: #059669;">Tier 2 — Edge Resilience Tier (Browser PWA &amp; Mesh Nodes)</div>
-                <div class="arch-tier-desc">Browser IndexedDB across 15 structured stores (sub-15ms local latency), Local Deterministic Agent Orchestrator, Service Worker (Workbox pre-caching of all application assets for 100% offline boot).</div>
-              </div>
-              <div class="arch-tier-card">
-                <div class="arch-tier-header" style="color: #d97706;">Tier 3 — Bi-Directional Synchronization Tier</div>
-                <div class="arch-tier-desc">Idempotent Sync Agent with UUID transaction journal, SHA-256 conflict hashes, exponential backoff health probing (<code>/api/v1/health</code>), and zero-overdraft ledger integrity.</div>
-              </div>
+            <div class="diagram-container">
+              <img src="/images/architecture_diagram.png" alt="Resilia Hybrid Dual-Engine Architecture Diagram" class="diagram-img">
             </div>
           </div>
         </div>
@@ -907,32 +887,9 @@
             <div class="slide-subtitle">Rigorous Engineering Verification Across 244 Automated Test Assertions</div>
           </div>
           <div class="slide-content">
-            <ul class="clean-bullet-list">
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Simulation Scope:</strong> Evaluated against simulated Marikina River Basin flood telemetry (Typhoon Ondoy / Ulysses baselines); not tested in actual live disasters.</div>
-              </li>
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Automated Test Coverage:</strong> 244 automated test assertions passing across 5 dedicated test suites with zero failures.</div>
-              </li>
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Local Write Latency:</strong> &lt; 15ms transaction write time to browser IndexedDB, eliminating packet loss delays.</div>
-              </li>
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Vulnerability Prioritization:</strong> Bedridden seniors and infants scored at 94/100, successfully prioritized ahead of general queues.</div>
-              </li>
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Relief Distribution Cooldown:</strong> 24-hour cooldown timer successfully blocked 100% of duplicate ayuda claims.</div>
-              </li>
-              <li class="clean-bullet-item">
-                <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Zero Overdraft Arithmetic:</strong> Warehouse inventory arithmetic strictly rejects allocations exceeding available stock.</div>
-              </li>
-            </ul>
+            <div class="diagram-container">
+              <img src="/images/benchmark_report_card.png" alt="Resilia Prototype Performance Report & Benchmarking" class="diagram-img">
+            </div>
           </div>
         </div>
         <img src="/images/ai_builder_cup_footer.png" alt="Google Cloud Footer" class="slide-footer-strip">
@@ -1035,7 +992,7 @@
               </li>
               <li class="clean-bullet-item">
                 <span class="bullet-dot">●</span>
-                <div class="bullet-text"><strong>Grassroots Bayanihan Community Ownership:</strong> Zero barrier to entry: 100% free for citizens, no app store gatekeeping, privacy-preserving local IndexedDB storage, and community-operated mesh nodes.</div>
+                <div class="bullet-text"><strong>Grassroots Bayanihan Community Ownership:</strong> Zero barrier to entry: completely free for citizens, no app store gatekeeping, privacy-preserving local IndexedDB storage, and community-operated mesh nodes.</div>
               </li>
             </ul>
             <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">

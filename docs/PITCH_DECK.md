@@ -52,7 +52,7 @@
 - **Slide Title:** Opportunities
 - **Three Template Questions Answered:**
   1. **How different is it from any of the other existing ideas?**
-     - *Local-First Edge Durability:* Unlike cloud-only apps that freeze when cell towers submerge, Resilia executes complete workflows 100% offline via browser IndexedDB with sub-15ms latency.
+     - *Local-First Edge Durability:* Unlike cloud-only apps that freeze when cell towers submerge, Resilia executes complete workflows via local browser caching for degraded networks with sub-15ms latency.
      - *Role-Tailored Ground Operations:* Specialized cockpits for Residents, Responders, and Coordinators instead of generic forms.
   2. **How will it be able to solve the problem?**
      - *Sub-Second Local Logging:* Instant local event logging ensures no emergency report is lost during network dropouts, queueing for automatic sync upon reconnection.
@@ -128,7 +128,7 @@
   - **Edge Resilience Tier (Browser PWA & Mesh Nodes):**
     - Browser IndexedDB (15 versioned object stores, <15ms write latency).
     - Local Deterministic Agent Orchestrator (zero-cloud offline rule execution).
-    - Service Worker (Workbox asset pre-caching for 100% offline boot).
+    - Service Worker (Workbox asset pre-caching for resilient offline boot).
   - **Bi-Directional Synchronization Tier:**
     - Idempotent Sync Agent with UUID transaction journal, SHA-256 conflict hashes, and exponential backoff health probing.
 - **Speaker Script:**
@@ -230,7 +230,7 @@
   - **UN Sustainable Development Goal 11 (Sustainable Cities & Communities):** Target 11.5 — Significantly reduce the number of deaths and people affected by disasters. Equipping low-lying river basin settlements with self-reliant survival tools.
   - **UN Sustainable Development Goal 13 (Climate Action):** Target 13.1 — Strengthen resilience and adaptive capacity to climate hazards and natural disasters across coastal JAPAC.
   - **Sendai Framework for DRR (2015–2030):** Priority 4 — Enhancing disaster preparedness for effective response and Building Back Better.
-  - **Grassroots Bayanihan Community Ownership:** Zero barrier to entry: 100% free for citizens, no app store gatekeeping, privacy-preserving local IndexedDB storage, and community-operated mesh nodes.
+  - **Grassroots Bayanihan Community Ownership:** Zero barrier to entry: completely free for citizens, no app store gatekeeping, privacy-preserving local IndexedDB storage, and community-operated mesh nodes.
 - **Speaker Script:**
   > "Resilia directly advances UN Sustainable Development Goals 11 and 13 as well as the Sendai Framework Priority 4. By removing all financial, technical, and connectivity barriers, we empower grassroots communities to protect themselves and foster true bayanihan community solidarity."
 

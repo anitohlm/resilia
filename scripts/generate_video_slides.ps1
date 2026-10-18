@@ -281,7 +281,7 @@ DrawCard -g $s3.Graphics -x 1010 -y 570 -w 810 -h 120 -title 'Alarm Level 3 [18.
 FillRoundedRect -g $s3.Graphics -brush $bEmeraldBg -x 1010 -y 715 -w 810 -h 150 -radius 8
 DrawRoundedRect -g $s3.Graphics -pen $pEmerald -x 1010 -y 715 -w 810 -h 150 -radius 8
 $s3.Graphics.DrawString('HONEST ENGINEERING PROTOTYPE DISCLOSURE', $fCardTitle, $bEmerald, 1030, 730)
-$calloutText = 'Resilia is presented transparently as a functional software prototype evaluated against simulated flood telemetry and automated test suites. We do not claim 100% reliability in live disasters, but demonstrate practical architectural feasibility under severe network loss.'
+$calloutText = 'Resilia is presented transparently as a functional software prototype evaluated against simulated flood telemetry and automated test suites. We make no absolute reliability claims in live disasters, but demonstrate practical architectural feasibility under severe network loss.'
 $cRect = New-Object System.Drawing.RectangleF(1030, 760, 770, 95)
 $s3.Graphics.DrawString($calloutText, $fCardBody, $bWhite, $cRect)
 

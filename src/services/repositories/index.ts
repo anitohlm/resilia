@@ -552,6 +552,7 @@ export class IncidentRepository {
       incident.responderNotes = `${existing}[${newStatus}] ${notes}`;
     }
 
+    await localDB.put(STORES.INCIDENTS, incident);
     await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, incident, 'UPDATE', actor.id);
     await AuditRepository.log(
       actor,
@@ -559,6 +560,145 @@ export class IncidentRepository {
       'incident',
       incident.id,
       `${actor.name} (${actor.role}) updated responder status to ${newStatus}. Notes: ${notes || 'None'}`
+    );
+
+    // If incident is resolved, propagate COMPLETED to linked mission and FULFILLED to linked assistance requests
+    if (newStatus === 'RESOLVED') {
+      try {
+        const allMissions = await localDB.getAll<Mission>(STORES.MISSIONS);
+        const linkedMissions = allMissions.filter(
+          (m) =>
+            m.assistanceRequestId === incident.id ||
+            m.id === 'mis_inc_' + incident.id.replace(/[^a-zA-Z0-9]/g, '_') ||
+            m.evidenceRecordIds?.includes(incident.id)
+        );
+        for (const m of linkedMissions) {
+          if (m.status !== 'COMPLETED') {
+            m.status = 'COMPLETED';
+            m.updatedAt = new Date().toISOString();
+            m.statusHistory.push({
+              status: 'COMPLETED',
+              actorId: actor.id,
+              actorName: actor.name,
+              timestamp: m.updatedAt,
+              note: `Incident ${incident.id} marked RESOLVED by ${actor.name}`,
+            });
+            await localDB.put(STORES.MISSIONS, m);
+            await EventQueueService.recordLocalWrite('mission', STORES.MISSIONS, m, 'UPDATE', actor.id);
+          }
+        }
+
+        const allRequests = await localDB.getAll<AssistanceRequest>(STORES.ASSISTANCE);
+        const linkedRequests = allRequests.filter(
+          (r) =>
+            r.assignedMissionId === incident.id ||
+            r.id === incident.id ||
+            linkedMissions.some(
+              (m) =>
+                m.id === r.assignedMissionId ||
+                m.assistanceRequestId === r.id ||
+                m.evidenceRecordIds?.includes(r.id)
+            )
+        );
+        for (const r of linkedRequests) {
+          if (r.status !== 'FULFILLED') {
+            r.status = 'FULFILLED';
+            r.updatedAt = new Date().toISOString();
+            await localDB.put(STORES.ASSISTANCE, r);
+            await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, r, 'UPDATE', actor.id);
+          }
+        }
+      } catch (propagateErr) {
+        console.warn('Could not propagate incident resolution to missions or requests:', propagateErr);
+      }
+    }
+
+    return incident;
+  }
+
+  /**
+   * Field Responder requests reinforcement / backup on an incident
+   */
+  public static async requestBackup(
+    incidentId: string,
+    backupDetails: {
+      resourceType: string;
+      quantity?: number;
+      reason: string;
+      locationName?: string;
+    },
+    actor: User
+  ): Promise<Incident> {
+    const incident = await localDB.get<Incident>(STORES.INCIDENTS, incidentId);
+    if (!incident) {
+      throw new Error(`Incident ${incidentId} not found.`);
+    }
+
+    const now = new Date().toISOString();
+    const structuredBackup: BackupDetails = {
+      requested: true,
+      resourceType: backupDetails.resourceType,
+      quantity: backupDetails.quantity,
+      reason: backupDetails.reason,
+      locationName: backupDetails.locationName || incident.locationName,
+      requestedByResponderId: actor.id,
+      requestedByResponderName: actor.name,
+      requestedAt: now,
+      status: 'REQUESTED',
+    };
+
+    incident.hasBackupRequest = true;
+    incident.backupDetails = structuredBackup;
+
+    await localDB.put(STORES.INCIDENTS, incident);
+    await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, incident, 'UPDATE', actor.id);
+    await AuditRepository.log(
+      actor,
+      'REQUEST_BACKUP',
+      'incident',
+      incidentId,
+      `[BACKUP REQUESTED: ${backupDetails.resourceType}] Qty: ${backupDetails.quantity || 'N/A'} - ${backupDetails.reason}`
+    );
+
+    return incident;
+  }
+
+  /**
+   * Disaster Coordinator updates backup status on an incident
+   */
+  public static async updateBackupStatus(
+    incidentId: string,
+    status: 'DISPATCHED' | 'RESOLVED' | 'CANCELLED',
+    actor: User,
+    notes?: string
+  ): Promise<Incident> {
+    if (actor.role !== 'COORDINATOR') {
+      throw new Error('Unauthorized: Only Disaster Coordinators can update incident backup status.');
+    }
+
+    const incident = await localDB.get<Incident>(STORES.INCIDENTS, incidentId);
+    if (!incident) {
+      throw new Error(`Incident ${incidentId} not found.`);
+    }
+
+    if (incident.backupDetails) {
+      incident.backupDetails.status = status;
+      if (status === 'DISPATCHED') {
+        incident.backupDetails.dispatchedAt = new Date().toISOString();
+      }
+      if (notes) {
+        incident.backupDetails.notes = notes;
+      }
+    }
+
+    await localDB.put(STORES.INCIDENTS, incident);
+    await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, incident, 'UPDATE', actor.id);
+    await AuditRepository.log(
+      actor,
+      'UPDATE_BACKUP_STATUS',
+      'incident',
+      incidentId,
+      `Backup status updated to ${status}. ${notes || ''}`
     );
 
     return incident;
@@ -840,18 +980,23 @@ export class MissionRepository {
     );
 
     // Bidirectional sync: Update linked AssistanceRequest status to ASSIGNED
-    if (mission.assistanceRequestId) {
-      try {
-        const linkedReq = await localDB.get<AssistanceRequest>(STORES.ASSISTANCE, mission.assistanceRequestId);
-        if (linkedReq) {
-          linkedReq.status = 'ASSIGNED';
-          linkedReq.assignedMissionId = mission.id;
-          linkedReq.updatedAt = mission.updatedAt;
-          await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, linkedReq, 'UPDATE', actor.id);
-        }
-      } catch (err) {
-        console.warn('Could not update linked assistance request on mission assignment:', err);
+    try {
+      const allRequests = await localDB.getAll<AssistanceRequest>(STORES.ASSISTANCE);
+      const requestsToAssign = allRequests.filter(
+        (r) =>
+          (mission.assistanceRequestId && r.id === mission.assistanceRequestId) ||
+          r.assignedMissionId === mission.id ||
+          mission.evidenceRecordIds?.includes(r.id)
+      );
+      for (const linkedReq of requestsToAssign) {
+        linkedReq.status = 'ASSIGNED';
+        linkedReq.assignedMissionId = mission.id;
+        linkedReq.updatedAt = mission.updatedAt;
+        await localDB.put(STORES.ASSISTANCE, linkedReq);
+        await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, linkedReq, 'UPDATE', actor.id);
       }
+    } catch (err) {
+      console.warn('Could not update linked assistance request on mission assignment:', err);
     }
 
     return mission;
@@ -863,7 +1008,38 @@ export class MissionRepository {
     actor: User,
     note?: string
   ): Promise<Mission> {
-    const mission = await localDB.get<Mission>(STORES.MISSIONS, missionId);
+    let mission = await localDB.get<Mission>(STORES.MISSIONS, missionId);
+    
+    // If not found directly in STORES.MISSIONS, check if it's an incident-derived mission
+    if (!mission && missionId.startsWith('mis_inc_')) {
+      const incidentId = missionId.replace('mis_inc_', '');
+      const inc = await localDB.get<Incident>(STORES.INCIDENTS, incidentId);
+      if (inc) {
+        mission = {
+          id: missionId,
+          title: `Incident Response: ${inc.title}`,
+          assistanceRequestId: inc.id,
+          priority: inc.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+          rationale: `Coordinator dispatched direct hazard response: ${inc.title}`,
+          pickupLocation: inc.locationName,
+          destinationLocation: inc.locationName,
+          lat: inc.lat,
+          lng: inc.lng,
+          requestedAssistance: inc.description,
+          vulnerabilitySummary: `Field Incident ${inc.type} (${inc.severity})`,
+          assignedResponderId: actor.id,
+          assignedResponderName: actor.name,
+          status: 'IN_PROGRESS',
+          statusHistory: [],
+          evidenceRecordIds: [inc.id],
+          requiresHumanApproval: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await localDB.put(STORES.MISSIONS, mission);
+      }
+    }
+
     if (!mission) {
       throw new Error(`Mission ${missionId} not found.`);
     }
@@ -901,6 +1077,7 @@ export class MissionRepository {
       note,
     });
 
+    await localDB.put(STORES.MISSIONS, mission);
     await EventQueueService.recordLocalWrite('mission', STORES.MISSIONS, mission, 'UPDATE', actor.id);
     await AuditRepository.log(
       actor,
@@ -910,45 +1087,78 @@ export class MissionRepository {
       `Transitioned mission to ${newStatus}. Note: ${note || 'None'}`
     );
 
-    // Bidirectional sync: Propagate mission progress to linked AssistanceRequest
-    if (mission.assistanceRequestId) {
-      try {
-        const linkedReq = await localDB.get<AssistanceRequest>(STORES.ASSISTANCE, mission.assistanceRequestId);
-        if (linkedReq) {
-          let reqStatus: AssistanceStatus = linkedReq.status;
-          if (newStatus === 'ACCEPTED' || newStatus === 'IN_PROGRESS') {
-            reqStatus = 'IN_PROGRESS';
-          } else if (newStatus === 'COMPLETED') {
-            reqStatus = 'FULFILLED';
-          } else if (newStatus === 'CANCELLED' || newStatus === 'REJECTED') {
-            reqStatus = 'PENDING';
+    // Bidirectional sync: Propagate mission progress to linked Incident if applicable
+    let linkedInc: Incident | undefined;
+    try {
+      if (mission.assistanceRequestId) {
+        linkedInc = await localDB.get<Incident>(STORES.INCIDENTS, mission.assistanceRequestId);
+      }
+      if (!linkedInc && mission.id.startsWith('mis_inc_')) {
+        const incId = mission.id.replace('mis_inc_', '');
+        linkedInc = await localDB.get<Incident>(STORES.INCIDENTS, incId);
+      }
+      if (!linkedInc && mission.evidenceRecordIds?.length) {
+        for (const evId of mission.evidenceRecordIds) {
+          const cand = await localDB.get<Incident>(STORES.INCIDENTS, evId);
+          if (cand) {
+            linkedInc = cand;
+            break;
           }
-          linkedReq.status = reqStatus;
-          linkedReq.assignedMissionId = mission.id;
-          linkedReq.updatedAt = mission.updatedAt;
-          await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, linkedReq, 'UPDATE', actor.id);
         }
-      } catch (err) {
-        console.warn('Could not update linked assistance request status on mission change:', err);
       }
 
-      // Bidirectional sync: Propagate mission progress to linked Incident if applicable
-      try {
-        const linkedInc = await localDB.get<Incident>(STORES.INCIDENTS, mission.assistanceRequestId);
-        if (linkedInc) {
-          if (newStatus === 'ACCEPTED') {
-            linkedInc.responderStatus = 'DISPATCHED';
-          } else if (newStatus === 'IN_PROGRESS') {
-            linkedInc.responderStatus = 'EN_ROUTE';
-          } else if (newStatus === 'COMPLETED') {
-            linkedInc.responderStatus = 'RESOLVED';
-            linkedInc.status = 'RESOLVED';
-          }
-          await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, linkedInc, 'UPDATE', actor.id);
+      if (linkedInc) {
+        if (newStatus === 'ACCEPTED') {
+          linkedInc.responderStatus = 'DISPATCHED';
+        } else if (newStatus === 'IN_PROGRESS') {
+          linkedInc.responderStatus = 'EN_ROUTE';
+        } else if (newStatus === 'COMPLETED') {
+          linkedInc.responderStatus = 'RESOLVED';
+          linkedInc.status = 'RESOLVED';
         }
-      } catch (err) {
-        console.warn('Could not update linked incident status on mission change:', err);
+        await localDB.put(STORES.INCIDENTS, linkedInc);
+        await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, linkedInc, 'UPDATE', actor.id);
       }
+    } catch (err) {
+      console.warn('Could not update linked incident status on mission change:', err);
+    }
+
+    // Bidirectional sync: Propagate mission progress to ALL linked Assistance Requests
+    try {
+      const allRequests = await localDB.getAll<AssistanceRequest>(STORES.ASSISTANCE);
+      const requestsToUpdate = allRequests.filter((req) => {
+        if (mission.assistanceRequestId && req.id === mission.assistanceRequestId) return true;
+        if (req.assignedMissionId === mission.id) return true;
+        if (mission.evidenceRecordIds?.includes(req.id)) return true;
+        if (mission.assistanceRequestId && req.assignedMissionId === mission.assistanceRequestId) return true;
+        if (linkedInc && (req.assignedMissionId === linkedInc.id || req.locationName === linkedInc.locationName)) return true;
+        return false;
+      });
+
+      for (const linkedReq of requestsToUpdate) {
+        let reqStatus: AssistanceStatus = linkedReq.status;
+        if (newStatus === 'ACCEPTED' || newStatus === 'IN_PROGRESS') {
+          reqStatus = 'IN_PROGRESS';
+        } else if (newStatus === 'COMPLETED') {
+          reqStatus = 'FULFILLED';
+        } else if (newStatus === 'CANCELLED' || newStatus === 'REJECTED') {
+          reqStatus = 'PENDING';
+        }
+        linkedReq.status = reqStatus;
+        linkedReq.assignedMissionId = mission.id;
+        linkedReq.updatedAt = mission.updatedAt;
+        await localDB.put(STORES.ASSISTANCE, linkedReq);
+        await EventQueueService.recordLocalWrite('assistance_request', STORES.ASSISTANCE, linkedReq, 'UPDATE', actor.id);
+        await AuditRepository.log(
+          actor,
+          'UPDATE_ASSISTANCE_STATUS',
+          'assistance_request',
+          linkedReq.id,
+          `Assistance request ${linkedReq.id} auto-updated to ${reqStatus} upon mission ${mission.id} ${newStatus}`
+        );
+      }
+    } catch (err) {
+      console.warn('Could not update linked assistance request status on mission change:', err);
     }
 
     return mission;
@@ -1056,6 +1266,26 @@ export class MissionRepository {
       }
     } catch (err) {
       console.warn('Could not propagate backup request to linked assistance request:', err);
+    }
+
+    // Bi-directionally propagate backup details to linked Incident
+    try {
+      const allIncidents = await localDB.getAll<Incident>(STORES.INCIDENTS);
+      const linkedIncident = allIncidents.find(
+        (inc) =>
+          mission!.evidenceRecordIds?.includes(inc.id) ||
+          inc.id === mission!.assistanceRequestId ||
+          (mission!.assignedResponderId && inc.assignedResponderId === mission!.assignedResponderId)
+      );
+
+      if (linkedIncident) {
+        linkedIncident.hasBackupRequest = true;
+        linkedIncident.backupDetails = structuredBackup;
+        await localDB.put(STORES.INCIDENTS, linkedIncident);
+        await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, linkedIncident, 'UPDATE', actor.id);
+      }
+    } catch (err) {
+      console.warn('Could not propagate backup request to linked incident:', err);
     }
 
     return mission;

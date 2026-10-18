@@ -44,6 +44,7 @@ interface ResidentMarkSafeProps {
   navigate: Navigate;
   shelters: Shelter[];
   connectivity: string;
+  onSafetyUpdated?: () => void;
 }
 
 const SAFETY_STATUS_OPTIONS: {
@@ -62,6 +63,7 @@ export const ResidentMarkSafe: React.FC<ResidentMarkSafeProps> = ({
   navigate,
   shelters,
   connectivity,
+  onSafetyUpdated,
 }) => {
   const { currentUser } = useAuth();
   const syncEvents = useSyncEvents();
@@ -108,7 +110,11 @@ export const ResidentMarkSafe: React.FC<ResidentMarkSafeProps> = ({
 
       if (connectivity === 'ONLINE') {
         syncClient.triggerSync().catch(() => undefined);
+      } else {
+        syncClient.scheduleDebouncedSync(50);
       }
+
+      onSafetyUpdated?.();
 
       setRecentSaved(saved);
       setExistingCheckIns(safetyCheckInService.getForResident(currentUser.id));

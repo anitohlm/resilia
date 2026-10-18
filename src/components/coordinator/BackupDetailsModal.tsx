@@ -5,9 +5,9 @@
  */
 
 import React, { useState } from 'react';
-import { AssistanceRequest, Mission } from '../../types';
+import { AssistanceRequest, Incident, Mission } from '../../types';
 import { useAuth } from '../../services/auth/authContext';
-import { AssistanceRepository, MissionRepository } from '../../services/repositories';
+import { AssistanceRepository, IncidentRepository, MissionRepository } from '../../services/repositories';
 import {
   AlertCircle,
   AlertTriangle,
@@ -18,6 +18,7 @@ import {
   MapPin,
   PackagePlus,
   Phone,
+  Radio,
   Send,
   Shield,
   ShieldAlert,
@@ -27,8 +28,9 @@ import {
 } from 'lucide-react';
 
 interface BackupDetailsModalProps {
-  request: AssistanceRequest;
-  mission?: Mission;
+  request?: AssistanceRequest | null;
+  incident?: Incident | null;
+  mission?: Mission | null;
   onClose: () => void;
   onStatusUpdated?: () => void;
 }
@@ -44,6 +46,7 @@ const RESOURCE_TYPE_LABELS: Record<string, { label: string; icon: any }> = {
 
 export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
   request,
+  incident,
   mission,
   onClose,
   onStatusUpdated,
@@ -52,7 +55,7 @@ export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const backup = request.backupDetails || mission?.backupDetails;
+  const backup = request?.backupDetails || incident?.backupDetails || mission?.backupDetails;
 
   const resourceConfig = backup?.resourceType
     ? RESOURCE_TYPE_LABELS[backup.resourceType] || { label: backup.resourceType, icon: ShieldAlert }
@@ -63,14 +66,27 @@ export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
     setIsUpdating(true);
     setFeedback(null);
     try {
-      await AssistanceRepository.updateBackupStatus(
-        request.id,
-        newStatus,
-        currentUser,
-        newStatus === 'DISPATCHED'
-          ? 'Disaster Coordinator dispatched secondary reinforcement team.'
-          : 'Backup requirement fulfilled and secured.'
-      );
+      if (request?.id) {
+        await AssistanceRepository.updateBackupStatus(
+          request.id,
+          newStatus,
+          currentUser,
+          newStatus === 'DISPATCHED'
+            ? 'Disaster Coordinator dispatched secondary reinforcement team.'
+            : 'Backup requirement fulfilled and secured.'
+        );
+      }
+
+      if (incident?.id) {
+        await IncidentRepository.updateBackupStatus(
+          incident.id,
+          newStatus,
+          currentUser,
+          newStatus === 'DISPATCHED'
+            ? 'Disaster Coordinator dispatched secondary reinforcement team.'
+            : 'Backup requirement fulfilled and secured.'
+        );
+      }
 
       // Also update linked mission if present
       if (mission) {
@@ -145,7 +161,7 @@ export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Requested by field responder • Ref: {request.id}
+                Requested by field responder • Ref: {request?.id || incident?.id || mission?.id || 'BACKUP'}
               </p>
             </div>
           </div>
@@ -213,7 +229,7 @@ export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
                   Location on Scene
                 </span>
                 <span className="font-semibold text-neutral-900">
-                  {backup?.locationName || request.locationName}
+                  {backup?.locationName || request?.locationName || incident?.locationName || 'Scene Location'}
                 </span>
               </div>
             </div>
@@ -234,48 +250,97 @@ export const BackupDetailsModal: React.FC<BackupDetailsModalProps> = ({
             </p>
           </div>
 
+          {/* Associated Incident Report Summary */}
+          {incident && (
+            <div className="p-3.5 rounded-xl border border-neutral-200 space-y-2">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
+                <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                  <Radio className="w-4 h-4 text-emerald-600" />
+                  <span>Linked Incident Report</span>
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                    incident.severity === 'CRITICAL'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : incident.severity === 'HIGH'
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}
+                >
+                  {incident.severity}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <span className="text-neutral-500">Incident:</span>{' '}
+                  <span className="font-bold text-neutral-900">{incident.title}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Location:</span>{' '}
+                  <span className="font-semibold text-neutral-900">{incident.locationName}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Type:</span>{' '}
+                  <span className="font-semibold text-neutral-900">{incident.type.replace('_', ' ')}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Reporter:</span>{' '}
+                  <span className="font-medium text-neutral-900">{incident.reporterName}</span>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-neutral-600 pt-1 border-t border-neutral-100">
+                <span className="font-semibold text-neutral-800">Field notes:</span>{' '}
+                {incident.description}
+              </div>
+            </div>
+          )}
+
           {/* Associated Citizen Assistance Request Summary */}
-          <div className="p-3.5 rounded-xl border border-neutral-200 space-y-2">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
-              <span className="font-bold text-neutral-900 flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-emerald-600" />
-                <span>Linked Resident Assistance Request</span>
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
-                  request.priority === 'CRITICAL'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}
-              >
-                {request.priority} ({request.priorityScore}/100)
-              </span>
-            </div>
+          {request && (
+            <div className="p-3.5 rounded-xl border border-neutral-200 space-y-2">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
+                <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <span>Linked Resident Assistance Request</span>
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                    request.priority === 'CRITICAL'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                  }`}
+                >
+                  {request.priority} ({request.priorityScore}/100)
+                </span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-              <div>
-                <span className="text-neutral-500">Resident:</span>{' '}
-                <span className="font-bold text-neutral-900">{request.residentName}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <span className="text-neutral-500">Resident:</span>{' '}
+                  <span className="font-bold text-neutral-900">{request.residentName}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Contact:</span>{' '}
+                  <span className="font-mono text-neutral-900">{request.contactPhone}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Headcount:</span>{' '}
+                  <span className="font-semibold text-neutral-900">{request.peopleCount} pax</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500">Assistance Category:</span>{' '}
+                  <span className="font-semibold text-neutral-900">{request.category.replace('_', ' ')}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-neutral-500">Contact:</span>{' '}
-                <span className="font-mono text-neutral-900">{request.contactPhone}</span>
-              </div>
-              <div>
-                <span className="text-neutral-500">Headcount:</span>{' '}
-                <span className="font-semibold text-neutral-900">{request.peopleCount} pax</span>
-              </div>
-              <div>
-                <span className="text-neutral-500">Assistance Category:</span>{' '}
-                <span className="font-semibold text-neutral-900">{request.category.replace('_', ' ')}</span>
-              </div>
-            </div>
 
-            <div className="text-[11px] text-neutral-600 pt-1 border-t border-neutral-100">
-              <span className="font-semibold text-neutral-800">Distress description:</span>{' '}
-              {request.description}
+              <div className="text-[11px] text-neutral-600 pt-1 border-t border-neutral-100">
+                <span className="font-semibold text-neutral-800">Distress description:</span>{' '}
+                {request.description}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Modal Footer & Actions */}

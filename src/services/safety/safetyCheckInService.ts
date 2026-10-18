@@ -115,6 +115,31 @@ const INITIAL_CHECKINS: SafetyCheckIn[] = [
 ];
 
 class SafetyCheckInService {
+  private crossTabChannel: BroadcastChannel | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      if ('BroadcastChannel' in window) {
+        try {
+          this.crossTabChannel = new BroadcastChannel('resilia_safety_channel');
+          this.crossTabChannel.onmessage = (event) => {
+            if (event.data?.type === 'SAFETY_CHECKIN_UPDATED') {
+              window.dispatchEvent(new CustomEvent('resilia_safety_checkin_updated'));
+            }
+          };
+        } catch {
+          // ignore
+        }
+      }
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY) {
+          window.dispatchEvent(new CustomEvent('resilia_safety_checkin_updated'));
+        }
+      });
+    }
+  }
+
   private getStore(): SafetyCheckIn[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -131,7 +156,16 @@ class SafetyCheckInService {
   private saveStore(items: SafetyCheckIn[]): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent('resilia_safety_checkin_updated'));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('resilia_safety_checkin_updated'));
+        if (this.crossTabChannel) {
+          try {
+            this.crossTabChannel.postMessage({ type: 'SAFETY_CHECKIN_UPDATED' });
+          } catch {
+            // ignore
+          }
+        }
+      }
     } catch (e) {
       console.error('Failed to save safety check-in locally:', e);
     }
@@ -145,12 +179,27 @@ class SafetyCheckInService {
 
   public recordCheckIn(entry: Omit<SafetyCheckIn, 'id' | 'timestamp'>): SafetyCheckIn {
     const items = this.getStore();
-    const newEntry: SafetyCheckIn = {
-      ...entry,
-      id: `safe_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      timestamp: new Date().toISOString(),
-    };
-    items.unshift(newEntry);
+    const existingIndex = entry.residentId
+      ? items.findIndex((i) => i.residentId === entry.residentId)
+      : -1;
+
+    let newEntry: SafetyCheckIn;
+    if (existingIndex >= 0) {
+      newEntry = {
+        ...items[existingIndex],
+        ...entry,
+        timestamp: new Date().toISOString(),
+      };
+      items[existingIndex] = newEntry;
+    } else {
+      newEntry = {
+        ...entry,
+        id: `safe_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        timestamp: new Date().toISOString(),
+      };
+      items.unshift(newEntry);
+    }
+
     this.saveStore(items);
     return newEntry;
   }
@@ -166,6 +215,36 @@ class SafetyCheckInService {
     const saved = this.recordCheckIn({ ...entry, isVerified: false });
     await EventQueueService.enqueueEvent('safety_checkin', saved, 'CREATE', actorId);
     return saved;
+  }
+
+  /**
+   * Merges remote check-ins pulled from the server or cloud sync.
+   */
+  public mergeRemoteCheckIns(remoteItems: SafetyCheckIn[]): void {
+    if (!Array.isArray(remoteItems) || remoteItems.length === 0) return;
+    const items = this.getStore();
+    let hasChanges = false;
+
+    for (const remote of remoteItems) {
+      const idx = items.findIndex(
+        (i) => i.id === remote.id || (remote.residentId && i.residentId === remote.residentId)
+      );
+      if (idx >= 0) {
+        const localTime = new Date(items[idx].timestamp).getTime();
+        const remoteTime = new Date(remote.timestamp).getTime();
+        if (remoteTime >= localTime) {
+          items[idx] = { ...items[idx], ...remote };
+          hasChanges = true;
+        }
+      } else {
+        items.unshift(remote);
+        hasChanges = true;
+      }
+    }
+
+    if (hasChanges) {
+      this.saveStore(items);
+    }
   }
 
   /** Only the resident's own check-ins — never the community roster. */

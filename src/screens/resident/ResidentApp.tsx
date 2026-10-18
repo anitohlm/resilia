@@ -197,7 +197,7 @@ export const ResidentApp: React.FC<ResidentAppProps> = (props) => {
           <ResidentReport onBack={goHome} navigate={navigate} connectivity={props.connectivity} onCreated={props.refreshLocalData} />
         )}
         {screen === 'MARK_SAFE' && (
-          <ResidentMarkSafe onBack={goHome} navigate={navigate} shelters={props.shelters} connectivity={props.connectivity} />
+          <ResidentMarkSafe onBack={goHome} navigate={navigate} shelters={props.shelters} connectivity={props.connectivity} onSafetyUpdated={props.refreshLocalData} />
         )}
         {screen === 'RESOURCES_SHELTERS' && (
           <ResidentFindPlace

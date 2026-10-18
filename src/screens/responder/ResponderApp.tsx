@@ -184,11 +184,8 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
           </div>
 
           {/* Current Responder Identity Card */}
-          <div className="p-3.5 rounded-2xl bg-[#F5F7F6] border border-[#E3E9E5] space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#66736D]">
-              <span className="font-extrabold uppercase text-[#16856B]">Active Responder</span>
-              <ConnectivityBadge variant="responder" showTestOfflineToggle={false} />
-            </div>
+          <div className="p-3.5 rounded-2xl bg-[#F5F7F6] border border-[#E3E9E5] space-y-1">
+            <span className="font-extrabold uppercase text-[11px] text-[#16856B] block">Active Responder</span>
             <p className="font-bold text-xs text-[#182522] truncate">{currentUser.name}</p>
             <p className="text-[10px] text-[#66736D] truncate">{currentUser.assignedZone || 'Sector 2 (Tumana-Malanday)'}</p>
           </div>

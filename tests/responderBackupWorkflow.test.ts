@@ -15,11 +15,13 @@ import { localDB, STORES } from '../src/services/offline/db';
 import {
   MissionRepository,
   AssistanceRepository,
+  IncidentRepository,
 } from '../src/services/repositories';
 import { BackupDetailsModal } from '../src/components/coordinator/BackupDetailsModal';
 import {
   User,
   AssistanceRequest,
+  Incident,
   Mission,
 } from '../src/types';
 
@@ -325,6 +327,145 @@ async function runTests() {
 
   assert(resolvedReq.backupDetails?.status === 'RESOLVED', 'Assistance backupDetails status updated to RESOLVED');
   assert(resolvedReq.hasBackupRequest === true, 'hasBackupRequest remains true for historical tracking');
+
+  // --------------------------------------------------------------------------
+  // TEST CASE 7: Coordinator Incidents & Reports Table Backup Column Evaluation
+  // --------------------------------------------------------------------------
+  console.log('\nTest 7: Incidents & Reports Table "Backup" Column Evaluation');
+  const testIncidentWithBackup: Incident = {
+    id: 'inc_flood_rescue_001',
+    type: 'FLOOD',
+    title: 'Severe Dike Overtopping at Tumana Reach',
+    description: 'River breached retaining wall, 120cm floodwater on street level.',
+    lat: 14.658,
+    lng: 121.102,
+    locationName: 'Purok 4, Tumana Dike',
+    reporterId: 'res_001',
+    reporterName: 'Aling Maria',
+    reporterRole: 'RESIDENT',
+    severity: 'CRITICAL',
+    status: 'VERIFIED',
+    supportingReportsCount: 3,
+    contradictingReportsCount: 0,
+    hasBackupRequest: true,
+    backupDetails: {
+      requested: true,
+      resourceType: 'BOAT_EQUIPMENT',
+      quantity: 2,
+      reason: 'Rapid current requires motorized reinforcement raft.',
+      locationName: 'Purok 4, Tumana Dike',
+      requestedByResponderId: 'user_responder_juan',
+      requestedByResponderName: 'Officer Juan dela Cruz',
+      requestedAt: new Date().toISOString(),
+      status: 'REQUESTED',
+    },
+    createdAt: new Date().toISOString(),
+  };
+
+  const testIncidentWithoutBackup: Incident = {
+    id: 'inc_tree_fall_002',
+    type: 'ROAD_BLOCKED',
+    title: 'Fallen Mahogany Branch Blocking Lane',
+    description: 'Single branch blocking northbound lane, passable for motorcycles.',
+    lat: 14.659,
+    lng: 121.103,
+    locationName: 'J.P. Rizal St., Tumana',
+    reporterId: 'res_002',
+    reporterName: 'Mang Ben',
+    reporterRole: 'RESIDENT',
+    severity: 'LOW',
+    status: 'REPORTED',
+    supportingReportsCount: 1,
+    contradictingReportsCount: 0,
+    createdAt: new Date().toISOString(),
+  };
+
+  await localDB.put(STORES.INCIDENTS, testIncidentWithBackup);
+  await localDB.put(STORES.INCIDENTS, testIncidentWithoutBackup);
+
+  // Helper mimicking table cell evaluation for Incidents in CoordinatorDashboardScreen
+  function getIncidentBackupStatusDisplay(
+    inc: Incident,
+    missionsList: Mission[],
+    requestsList: AssistanceRequest[]
+  ) {
+    const linkedMission = missionsList.find(
+      (m) =>
+        m.evidenceRecordIds?.includes(inc.id) ||
+        m.id === inc.assignedResponderId ||
+        (m.title && inc.title && m.title.toLowerCase().includes(inc.title.toLowerCase()))
+    );
+    const linkedRequest = requestsList.find(
+      (r) =>
+        r.id === inc.id ||
+        (linkedMission &&
+          (linkedMission.assistanceRequestId === r.id || linkedMission.evidenceRecordIds?.includes(r.id)))
+    );
+
+    const hasBackup = Boolean(
+      inc.hasBackupRequest ||
+        inc.backupDetails?.requested ||
+        linkedMission?.hasBackupRequest ||
+        linkedMission?.backupDetails?.requested ||
+        linkedRequest?.hasBackupRequest ||
+        linkedRequest?.backupDetails?.requested
+    );
+    const backupObj = inc.backupDetails || linkedMission?.backupDetails || linkedRequest?.backupDetails;
+
+    if (hasBackup && backupObj) {
+      return { status: 'Yes', hasLink: true, backup: backupObj };
+    }
+    return { status: 'No', hasLink: false, backup: null };
+  }
+
+  const incColWithBackup = getIncidentBackupStatusDisplay(testIncidentWithBackup, missionsList, [propagatedReq]);
+  assert(incColWithBackup.status === 'Yes', 'Incident with backup yields status "Yes"');
+  assert(incColWithBackup.hasLink === true, 'Incident with backup yields clickable details link');
+  assert(incColWithBackup.backup?.resourceType === 'BOAT_EQUIPMENT', 'Provides full backup object for incident');
+
+  const incColWithoutBackup = getIncidentBackupStatusDisplay(testIncidentWithoutBackup, missionsList, [propagatedReq]);
+  assert(incColWithoutBackup.status === 'No', 'Incident without backup yields status "No"');
+  assert(incColWithoutBackup.hasLink === false, 'Incident without backup has no clickable modal link');
+
+  // --------------------------------------------------------------------------
+  // TEST CASE 8: Rendering BackupDetailsModal for an Incident
+  // --------------------------------------------------------------------------
+  console.log('\nTest 8: Rendering BackupDetailsModal component for Incident');
+  const incidentModalHtml = renderToString(
+    React.createElement(BackupDetailsModal, {
+      incident: testIncidentWithBackup,
+      onClose: () => {},
+      onStatusUpdated: () => {},
+    })
+  );
+
+  assert(incidentModalHtml.includes('Responder Backup Request Details'), 'Incident Modal renders header');
+  assert(incidentModalHtml.includes('Linked Incident Report'), 'Incident Modal renders "Linked Incident Report" card');
+  assert(incidentModalHtml.includes('Severe Dike Overtopping at Tumana Reach'), 'Incident Modal displays incident title');
+  assert(incidentModalHtml.includes('Purok 4, Tumana Dike'), 'Incident Modal displays incident location');
+  assert(incidentModalHtml.includes('Officer Juan dela Cruz'), 'Incident Modal displays requesting responder name');
+  assert(incidentModalHtml.includes('Dispatch Backup Unit'), 'Incident Modal has action button to dispatch backup');
+
+  // --------------------------------------------------------------------------
+  // TEST CASE 9: Coordinator updates incident backup status
+  // --------------------------------------------------------------------------
+  console.log('\nTest 9: Coordinator updates incident backup status via IncidentRepository');
+  const dispatchedIncident = await IncidentRepository.updateBackupStatus(
+    testIncidentWithBackup.id,
+    'DISPATCHED',
+    mockCoordinatorUser,
+    'Dispatched Marine Unit 2 to Tumana Dike.'
+  );
+  assert(dispatchedIncident.backupDetails?.status === 'DISPATCHED', 'Incident backup status updated to DISPATCHED');
+  assert(Boolean(dispatchedIncident.backupDetails?.dispatchedAt), 'Incident dispatchedAt recorded');
+
+  const resolvedIncident = await IncidentRepository.updateBackupStatus(
+    testIncidentWithBackup.id,
+    'RESOLVED',
+    mockCoordinatorUser,
+    'Reinforcement completed dike securing.'
+  );
+  assert(resolvedIncident.backupDetails?.status === 'RESOLVED', 'Incident backup status updated to RESOLVED');
 
   console.log('\n======================================================');
   console.log(`TEST RESULTS: ${passCount} Passed, ${failCount} Failed`);

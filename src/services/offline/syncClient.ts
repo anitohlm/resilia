@@ -8,11 +8,13 @@
 import { ConnectivityStatus, SyncConflict, SyncEvent } from '../../types';
 import { localDB, STORES } from './db';
 import { EventQueueService } from './eventQueue';
+import { safetyCheckInService } from '../safety/safetyCheckInService';
 
 type ConnectivityListener = (status: ConnectivityStatus) => void;
 
 class SyncClientService {
   private status: ConnectivityStatus = 'ONLINE';
+  private wasOffline = false;
   private listeners: Set<ConnectivityListener> = new Set();
   private checkIntervalId: any = null;
   private isSyncing = false;
@@ -24,14 +26,34 @@ class SyncClientService {
   constructor() {
     this.lastSuccessfulSync = typeof localStorage !== 'undefined' ? localStorage.getItem('resilia_last_sync_time') : null;
     this.simulatedOffline = typeof localStorage !== 'undefined' ? localStorage.getItem('resilia_simulated_offline') === 'true' : false;
+    if (this.simulatedOffline) {
+      this.wasOffline = true;
+      this.status = 'OFFLINE';
+    }
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('online', () => this.checkBackendHealth());
-      window.addEventListener('offline', () => this.setStatus('OFFLINE'));
+      window.addEventListener('online', () => {
+        this.handleInternetReconnected();
+      });
+      window.addEventListener('offline', () => {
+        this.handleInternetLost();
+      });
+
+      // Window focus or visibility change triggers check if we were offline
+      window.addEventListener('focus', () => {
+        if (this.wasOffline || this.status === 'OFFLINE') {
+          this.checkBackendHealth();
+        }
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && (this.wasOffline || this.status === 'OFFLINE')) {
+          this.checkBackendHealth();
+        }
+      });
 
       // Automatically trigger sync when any write occurs while ONLINE
       window.addEventListener('resilia_local_write', () => {
-        if (!this.simulatedOffline) {
+        if (!this.simulatedOffline && this.isOnline()) {
           this.scheduleDebouncedSync();
         }
       });
@@ -44,7 +66,7 @@ class SyncClientService {
             if (event.data?.type === 'RESILIA_LOCAL_WRITE') {
               // Fire local event so current tab UI reloads
               window.dispatchEvent(new CustomEvent('resilia_local_write', { detail: event.data }));
-              if (!this.simulatedOffline) {
+              if (!this.simulatedOffline && this.isOnline()) {
                 this.scheduleDebouncedSync();
               }
             }
@@ -54,6 +76,19 @@ class SyncClientService {
         }
       }
     }
+  }
+
+  public handleInternetLost() {
+    this.wasOffline = true;
+    this.setStatus('OFFLINE');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('resilia_internet_lost'));
+    }
+  }
+
+  public async handleInternetReconnected(): Promise<boolean> {
+    this.wasOffline = true;
+    return await this.checkBackendHealth();
   }
 
   public scheduleDebouncedSync(delay = 100) {
@@ -77,13 +112,17 @@ class SyncClientService {
   }
 
   public setSimulatedOffline(offline: boolean) {
+    const wasSimulated = this.simulatedOffline;
     this.simulatedOffline = offline;
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('resilia_simulated_offline', offline ? 'true' : 'false');
     }
     if (offline) {
-      this.setStatus('OFFLINE');
+      this.handleInternetLost();
     } else {
+      if (wasSimulated) {
+        this.wasOffline = true;
+      }
       this.checkBackendHealth();
     }
   }
@@ -134,18 +173,20 @@ class SyncClientService {
    */
   public async checkBackendHealth(): Promise<boolean> {
     if (this.simulatedOffline) {
+      this.wasOffline = true;
       this.setStatus('OFFLINE');
       return false;
     }
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.wasOffline = true;
       this.setStatus('OFFLINE');
       return false;
     }
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
       const res = await fetch('/api/v1/health', {
         method: 'GET',
@@ -155,31 +196,64 @@ class SyncClientService {
 
       clearTimeout(timeoutId);
 
+      let isHealthy = false;
       if (res.ok) {
-        const data = await res.json();
-        if (data.status === 'ok') {
-          if (this.status === 'OFFLINE' || this.status === 'DEGRADED') {
-            this.setStatus('ONLINE');
-          } else if (this.status !== 'SYNCING') {
-            this.setStatus('ONLINE');
-          }
-          // Automatically sync in background when online and not currently syncing
-          if (!this.isSyncing) {
-            this.triggerSync().catch(() => {});
-          }
-          return true;
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          isHealthy = data.status === 'ok';
         } else {
-          this.setStatus('DEGRADED');
-          return false;
+          // If running on static host (e.g. Firebase Hosting rewrite), reaching origin confirms online
+          isHealthy = true;
         }
+      }
+
+      if (isHealthy) {
+        const cameFromOffline = this.wasOffline || this.status === 'OFFLINE';
+        this.wasOffline = false;
+        this.setStatus('ONLINE');
+
+        if (cameFromOffline) {
+          await this.handleBackOnline();
+        } else if (!this.isSyncing) {
+          this.scheduleDebouncedSync(300);
+        }
+        return true;
       } else {
         this.setStatus('DEGRADED');
         return false;
       }
     } catch {
+      // If browser confirms device has internet connectivity (e.g. external network reachable)
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        const cameFromOffline = this.wasOffline || this.status === 'OFFLINE';
+        this.wasOffline = false;
+        this.setStatus('ONLINE');
+        if (cameFromOffline) {
+          await this.handleBackOnline();
+        }
+        return true;
+      }
+
+      this.wasOffline = true;
       this.setStatus('OFFLINE');
       return false;
     }
+  }
+
+  private async handleBackOnline(): Promise<void> {
+    console.log('[Resilia SyncClient] Internet connection restored. Triggering automatic field sync...');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('resilia_internet_restored', {
+          detail: { timestamp: new Date().toISOString() },
+        })
+      );
+    }
+    // Automatically trigger sync immediately upon reconnection from internet loss
+    await this.triggerSync({ reason: 'INTERNET_RESTORED' }).catch((err) => {
+      console.warn('Auto-sync on internet restoration warning:', err);
+    });
   }
 
   /**
@@ -190,7 +264,7 @@ class SyncClientService {
    * 4. GET /api/v1/sync/pull for remote changes
    * 5. Detects conflicts and records any divergence
    */
-  public async triggerSync(): Promise<{ success: boolean; syncedCount: number; conflictCount: number }> {
+  public async triggerSync(options?: { reason?: string }): Promise<{ success: boolean; syncedCount: number; conflictCount: number }> {
     if (this.isSyncing) {
       return { success: false, syncedCount: 0, conflictCount: 0 };
     }
@@ -202,7 +276,14 @@ class SyncClientService {
     this.isSyncing = true;
     this.setStatus('SYNCING');
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('resilia_sync_start'));
+      window.dispatchEvent(new CustomEvent('resilia_sync_start', { detail: options }));
+    }
+
+    // Ping testConnection in firebase in background if configured
+    if (typeof window !== 'undefined') {
+      import('../firebase/firebase')
+        .then(({ testConnection }) => testConnection?.())
+        .catch(() => {});
     }
 
     try {
@@ -272,6 +353,10 @@ class SyncClientService {
               }
             }
           }
+          if (Array.isArray((pullData.remoteRecords as any).safetyCheckIns) && (pullData.remoteRecords as any).safetyCheckIns.length > 0) {
+            safetyCheckInService.mergeRemoteCheckIns((pullData.remoteRecords as any).safetyCheckIns);
+            hasNewRecords = true;
+          }
           if (hasNewRecords && typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('resilia_local_write'));
           }
@@ -289,7 +374,16 @@ class SyncClientService {
 
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('resilia_sync_end'));
-        window.dispatchEvent(new CustomEvent('resilia_sync_complete', { detail: { syncedCount, conflictCount } }));
+        window.dispatchEvent(
+          new CustomEvent('resilia_sync_complete', {
+            detail: {
+              syncedCount,
+              conflictCount,
+              reason: options?.reason,
+              fromInternetRestored: options?.reason === 'INTERNET_RESTORED',
+            },
+          })
+        );
       }
 
       return { success: true, syncedCount, conflictCount };

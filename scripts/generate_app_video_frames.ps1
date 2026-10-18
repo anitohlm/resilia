@@ -243,7 +243,7 @@ DrawAppAlertBanner -g $f1.Graphics -bannerText 'PAGASA TCWS SIGNAL #3 // MARIKIN
 
 DrawFramedPhone -g $f1.Graphics -imagePath (Join-Path $imagesDir 'resilia_phone_resident.jpg') -x 40 -y 140 -w 500 -h 765 -screenLabel 'Resident Mobile Interface'
 
-DrawAppCard -g $f1.Graphics -x 570 -y 140 -w 1310 -h 175 -title 'Household Safety and Go-Bag Status [Sector 4-B Malanday]' -body 'Interactive status panel showing household safety declaration (All 3 family members marked safe). Go-Bag readiness at 100% with water, rations, prescription medicines, and power bank verified in local storage.' -accentBrush $bEmerald -badgeText 'HOUSEHOLD SAFETY'
+DrawAppCard -g $f1.Graphics -x 570 -y 140 -w 1310 -h 175 -title 'Household Safety and Go-Bag Status [Sector 4-B Malanday]' -body 'Interactive status panel showing household safety declaration (All 3 family members marked safe). Go-Bag readiness verified with water, rations, prescription medicines, and power bank tracked in local storage.' -accentBrush $bEmerald -badgeText 'HOUSEHOLD SAFETY'
 
 DrawAppCard -g $f1.Graphics -x 570 -y 335 -w 1310 -h 175 -title 'Community Evacuation Shelter: Malanday Elementary School' -body 'Real-time shelter capacity: 850 / 1,000 evacuees (85% occupied). Facility features active: wheelchair access ramps, infant nursing area, continuous power for dialysis/oxygen, and pet accommodation.' -accentBrush $bBlue -badgeText 'VERIFIED SHELTER STATUS'
 
@@ -267,7 +267,7 @@ DrawAppCard -g $f2.Graphics -x 950 -y 140 -w 930 -h 240 -title 'Find Me SOS Opti
 
 DrawAppCard -g $f2.Graphics -x 950 -y 400 -w 930 -h 240 -title 'Interactive 72-Hour Family Go-Bag Survival Checklist' -body 'Enables households to audit preparedness before floodwaters crest. Pre-configured with essential disaster items: 3 Gallons Potable Water, Non-Perishable Ready-to-Eat Food, First Aid Kit with Prescription Medicines, Waterproof Document Pouch, Flashlight and Batteries, and 20,000mAh Power Bank.' -accentBrush $bEmerald -badgeText 'SURVIVAL CHECKLIST'
 
-DrawAppCard -g $f2.Graphics -x 950 -y 660 -w 930 -h 245 -title 'Persistent Offline Availability' -body 'Checklist state and emergency beacon configurations are stored directly in browser IndexedDB (resilia_local_db). The checklist remains 100% accessible and editable even when cellular signals and Wi-Fi networks completely collapse.' -accentBrush $bAmber -badgeText 'LOCAL PERSISTENCE'
+DrawAppCard -g $f2.Graphics -x 950 -y 660 -w 930 -h 245 -title 'Persistent Offline Availability' -body 'Checklist state and emergency beacon configurations are stored directly in browser IndexedDB (resilia_local_db). The checklist remains locally accessible and editable even when cellular signals and Wi-Fi networks completely collapse.' -accentBrush $bAmber -badgeText 'LOCAL PERSISTENCE'
 
 DrawSubtitles -g $f2.Graphics -voiceText 'For residents, Resilia begins with preparedness and survival. Citizens can trigger the high-contrast Find Me emergency beacon, pulsing Morse code S.O.S. with GPS coordinates. The interactive 72-hour family Go-Bag checklist ensures households are ready, stored persistently offline.'
 $f2.Bitmap.Save((Join-Path $outputDir 'scene_02.jpg'), [System.Drawing.Imaging.ImageFormat]::Jpeg)
