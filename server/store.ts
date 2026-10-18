@@ -5,6 +5,7 @@
  */
 
 import {
+  Alert,
   AssistanceRequest,
   AuditEntry,
   Community,
@@ -138,6 +139,7 @@ class CentralCloudStore {
   public reports: Map<string, Report> = new Map();
   public safetyCheckIns: Map<string, any> = new Map();
   public auditEntries: AuditEntry[] = [];
+  public alerts: Map<string, Alert> = new Map();
   public triageRecords: Map<string, TriageRecord> = new Map();
   public rationDistributions: Map<string, RationDistributionRecord> = new Map();
   public missingPersons: Map<string, MissingKinRecord> = new Map();
@@ -252,6 +254,8 @@ class CentralCloudStore {
           this.mutualAidPosts.set(evt.entity_id, evt.payload);
         } else if (evt.entity_type === 'outbreak_watch') {
           this.outbreakWatch.set(evt.entity_id, evt.payload);
+        } else if (evt.entity_type === 'alert') {
+          this.alerts.set(evt.entity_id, evt.payload);
         }
 
         // Mark event as processed in ledger
@@ -271,7 +275,8 @@ class CentralCloudStore {
   }
 
   public getChangesSince(sinceTimestamp?: string): Record<string, any[]> {
-    const sinceTime = sinceTimestamp ? new Date(sinceTimestamp).getTime() : 0;
+    // 10-second safety margin to prevent missed updates from network transit and clock differences
+    const sinceTime = sinceTimestamp ? Math.max(0, new Date(sinceTimestamp).getTime() - 10000) : 0;
 
     const filterSince = (items: Iterable<any>) =>
       Array.from(items).filter((item) => {
@@ -287,6 +292,7 @@ class CentralCloudStore {
       assistanceRequests: filterSince(this.assistanceRequests.values()),
       missions: filterSince(this.missions.values()),
       reports: filterSince(this.reports.values()),
+      alerts: filterSince(this.alerts.values()),
       triageRecords: filterSince(this.triageRecords.values()),
       rationDistributions: filterSince(this.rationDistributions.values()),
       missingPersons: filterSince(this.missingPersons.values()),

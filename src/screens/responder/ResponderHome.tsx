@@ -23,6 +23,7 @@ import { useAuth } from '../../services/auth/authContext';
 import { MissionRepository } from '../../services/repositories';
 import {
   getActiveResponderMission,
+  isMissionAssignedToResponder,
   getMissionNextAction,
   getMissionStatusBadge,
   formatEvidenceNotice,
@@ -104,8 +105,7 @@ export const ResponderHome: React.FC<ResponderHomeProps> = ({
 
   // Other missions
   const isAssignedToMe = (m: Mission) =>
-    m.assignedResponderId === currentUser.id ||
-    (m.assignedResponderName && m.assignedResponderName.includes(currentUser.name));
+    isMissionAssignedToResponder(m, currentUser.id, currentUser.name);
 
   const otherAssignedMissions = missions.filter(
     (m) => isAssignedToMe(m) && (!activeMission || m.id !== activeMission.id) && m.status !== 'COMPLETED'

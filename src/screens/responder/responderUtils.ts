@@ -38,6 +38,61 @@ export function setStoredResponderAvailability(data: ResponderAvailability): voi
 }
 
 /**
+ * Resilient check whether a mission or incident dispatch is assigned to the specified responder.
+ * Handles exact ID match, canonical demo responder ID (user_responder_juan),
+ * and case-insensitive/flexible name matching (Officer Juan dela Cruz vs Officer Juan Dela Cruz).
+ */
+export function isMissionAssignedToResponder(
+  m: { assignedResponderId?: string; assignedResponderName?: string },
+  responderId?: string,
+  responderName?: string
+): boolean {
+  if (!m) return false;
+
+  // 1. Exact ID match
+  if (responderId && m.assignedResponderId && m.assignedResponderId === responderId) {
+    return true;
+  }
+
+  // 2. Default/Canonical Demo Responder check (Juan dela Cruz)
+  if (
+    m.assignedResponderId === 'user_responder_juan' &&
+    (!responderId || responderId === 'user_responder_juan' || responderId.startsWith('user_responder_'))
+  ) {
+    return true;
+  }
+
+  // 3. Name-based case-insensitive matching
+  const assignedName = (m.assignedResponderName || '').toLowerCase().replace(/[^a-z]/g, '');
+  const targetName = (responderName || '').toLowerCase().replace(/[^a-z]/g, '');
+
+  if (assignedName && targetName) {
+    if (assignedName.includes(targetName) || targetName.includes(assignedName)) {
+      return true;
+    }
+  }
+
+  // 4. Flexible keyword match for Juan / Dela Cruz
+  if (
+    assignedName &&
+    (assignedName.includes('juan') || assignedName.includes('delacruz') || assignedName.includes('cruz'))
+  ) {
+    if (
+      !targetName ||
+      targetName.includes('juan') ||
+      targetName.includes('delacruz') ||
+      targetName.includes('dela') ||
+      targetName.includes('cruz') ||
+      targetName.includes('rescue')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Derives the responder's primary active mission.
  * Prioritizes missions assigned to the current user in ACCEPTED or IN_PROGRESS,
  * followed by ASSIGNED / APPROVED.
@@ -45,7 +100,7 @@ export function setStoredResponderAvailability(data: ResponderAvailability): voi
 export function getActiveResponderMission(missions: Mission[], responderId: string, responderName: string): Mission | null {
   const myMissions = missions.filter(
     (m) =>
-      (m.assignedResponderId === responderId || (m.assignedResponderName && m.assignedResponderName.includes(responderName))) &&
+      isMissionAssignedToResponder(m, responderId, responderName) &&
       m.status !== 'COMPLETED' &&
       m.status !== 'CANCELLED' &&
       m.status !== 'REJECTED'

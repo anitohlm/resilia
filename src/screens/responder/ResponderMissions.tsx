@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { AssistanceRequest, Incident, Mission, MissionStatus, Shelter } from '../../types';
 import { useAuth } from '../../services/auth/authContext';
 import { MissionRepository } from '../../services/repositories';
-import { getMissionNextAction, getMissionStatusBadge } from './responderUtils';
+import { getMissionNextAction, getMissionStatusBadge, isMissionAssignedToResponder } from './responderUtils';
 import { ResponderMissionDetail } from './ResponderMissionDetail';
 import {
   AlertTriangle,
@@ -52,8 +52,7 @@ export const ResponderMissions: React.FC<ResponderMissionsProps> = ({
 
   // Categorize missions
   const isAssignedToMe = (m: Mission) =>
-    m.assignedResponderId === currentUser.id ||
-    (m.assignedResponderName && m.assignedResponderName.includes(currentUser.name));
+    isMissionAssignedToResponder(m, currentUser.id, currentUser.name);
 
   const myMissions = missions.filter((m) => isAssignedToMe(m) && m.status !== 'COMPLETED');
   const availableMissions = missions.filter((m) => !m.assignedResponderId && m.status === 'APPROVED');

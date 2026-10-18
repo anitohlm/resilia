@@ -472,6 +472,55 @@ export class IncidentRepository {
       `Coordinator ${actor.name} assigned responder ${responderName} (${responderId}) to incident. Notes: ${notes || 'None'}`
     );
 
+    // Auto-create or update corresponding Mission so the dispatch immediately shows up in Responder's portal
+    try {
+      const allMissions = await localDB.getAll<Mission>(STORES.MISSIONS);
+      const existing = allMissions.find(
+        (m) => m.assistanceRequestId === incident.id || m.evidenceRecordIds?.includes(incident.id)
+      );
+      if (existing) {
+        existing.assignedResponderId = responderId;
+        existing.assignedResponderName = responderName;
+        existing.status = 'ASSIGNED';
+        existing.updatedAt = new Date().toISOString();
+        await EventQueueService.recordLocalWrite('mission', STORES.MISSIONS, existing, 'UPDATE', actor.id);
+      } else {
+        const incidentMission: Mission = {
+          id: 'mis_inc_' + incident.id.replace(/[^a-zA-Z0-9]/g, '_'),
+          title: `Incident Response: ${incident.title}`,
+          assistanceRequestId: incident.id,
+          priority: incident.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+          rationale: `Coordinator direct dispatch for verified hazard: ${incident.title}. ${notes ? `Instructions: ${notes}` : ''}`,
+          pickupLocation: incident.locationName,
+          destinationLocation: incident.locationName,
+          lat: incident.lat,
+          lng: incident.lng,
+          requestedAssistance: incident.description,
+          vulnerabilitySummary: `Field Incident ${incident.type} (${incident.severity}). Hazard Status: ${incident.status}`,
+          assignedResponderId: responderId,
+          assignedResponderName: responderName,
+          assignedVehicleType: 'Rescue Response Vehicle 161',
+          status: 'ASSIGNED',
+          statusHistory: [
+            {
+              status: 'ASSIGNED',
+              actorId: actor.id,
+              actorName: actor.name,
+              timestamp: new Date().toISOString(),
+              note: notes || `Direct incident dispatch to ${responderName}`,
+            },
+          ],
+          evidenceRecordIds: [incident.id],
+          requiresHumanApproval: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await EventQueueService.recordLocalWrite('mission', STORES.MISSIONS, incidentMission, 'CREATE', actor.id);
+      }
+    } catch (missionErr) {
+      console.warn('Could not auto-generate mission for incident dispatch:', missionErr);
+    }
+
     return incident;
   }
 
@@ -801,6 +850,24 @@ export class MissionRepository {
         }
       } catch (err) {
         console.warn('Could not update linked assistance request status on mission change:', err);
+      }
+
+      // Bidirectional sync: Propagate mission progress to linked Incident if applicable
+      try {
+        const linkedInc = await localDB.get<Incident>(STORES.INCIDENTS, mission.assistanceRequestId);
+        if (linkedInc) {
+          if (newStatus === 'ACCEPTED') {
+            linkedInc.responderStatus = 'DISPATCHED';
+          } else if (newStatus === 'IN_PROGRESS') {
+            linkedInc.responderStatus = 'EN_ROUTE';
+          } else if (newStatus === 'COMPLETED') {
+            linkedInc.responderStatus = 'RESOLVED';
+            linkedInc.status = 'RESOLVED';
+          }
+          await EventQueueService.recordLocalWrite('incident', STORES.INCIDENTS, linkedInc, 'UPDATE', actor.id);
+        }
+      } catch (err) {
+        console.warn('Could not update linked incident status on mission change:', err);
       }
     }
 

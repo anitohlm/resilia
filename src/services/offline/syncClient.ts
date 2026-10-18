@@ -18,6 +18,8 @@ class SyncClientService {
   private isSyncing = false;
   private lastSuccessfulSync: string | null = null;
   private simulatedOffline = false; // Allow manual offline toggle for testing
+  private debounceTimeout: any = null;
+  private crossTabChannel: BroadcastChannel | null = null;
 
   constructor() {
     this.lastSuccessfulSync = typeof localStorage !== 'undefined' ? localStorage.getItem('resilia_last_sync_time') : null;
@@ -26,7 +28,43 @@ class SyncClientService {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => this.checkBackendHealth());
       window.addEventListener('offline', () => this.setStatus('OFFLINE'));
+
+      // Automatically trigger sync when any write occurs while ONLINE
+      window.addEventListener('resilia_local_write', () => {
+        if (!this.simulatedOffline) {
+          this.scheduleDebouncedSync();
+        }
+      });
+
+      // Listen for updates from other open browser tabs
+      if ('BroadcastChannel' in window) {
+        try {
+          this.crossTabChannel = new BroadcastChannel('resilia_sync_channel');
+          this.crossTabChannel.onmessage = (event) => {
+            if (event.data?.type === 'RESILIA_LOCAL_WRITE') {
+              // Fire local event so current tab UI reloads
+              window.dispatchEvent(new CustomEvent('resilia_local_write', { detail: event.data }));
+              if (!this.simulatedOffline) {
+                this.scheduleDebouncedSync();
+              }
+            }
+          };
+        } catch {
+          // ignore
+        }
+      }
     }
+  }
+
+  public scheduleDebouncedSync(delay = 100) {
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+    }
+    this.debounceTimeout = setTimeout(() => {
+      if (!this.simulatedOffline && this.status !== 'OFFLINE') {
+        this.triggerSync().catch(() => {});
+      }
+    }, delay);
   }
 
   public init() {
@@ -34,7 +72,7 @@ class SyncClientService {
     if (!this.checkIntervalId) {
       this.checkIntervalId = setInterval(() => {
         this.checkBackendHealth();
-      }, 10000); // Heartbeat every 10s
+      }, 4000); // Continuous live sync every 4s for resident, coordinator, and responder
     }
   }
 
@@ -110,12 +148,14 @@ class SyncClientService {
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'ok') {
-          // If we were offline or degraded and have pending events, trigger auto-sync
           if (this.status === 'OFFLINE' || this.status === 'DEGRADED') {
             this.setStatus('ONLINE');
-            this.triggerSync();
           } else if (this.status !== 'SYNCING') {
             this.setStatus('ONLINE');
+          }
+          // Automatically sync in background when online and not currently syncing
+          if (!this.isSyncing) {
+            this.triggerSync().catch(() => {});
           }
           return true;
         } else {
@@ -205,6 +245,7 @@ class SyncClientService {
       if (pullResponse.ok) {
         const pullData = await pullResponse.json();
         if (pullData.remoteRecords) {
+          let hasNewRecords = false;
           // Merge remote records into local IndexedDB
           for (const [storeName, records] of Object.entries(pullData.remoteRecords)) {
             if (Array.isArray(records) && Object.values(STORES).includes(storeName as any)) {
@@ -213,17 +254,21 @@ class SyncClientService {
                 const hasPending = pendingEvents.some((p) => p.entity_id === (rec as any).id);
                 if (!hasPending) {
                   await localDB.put(storeName as any, rec);
+                  hasNewRecords = true;
                 }
               }
             }
           }
+          if (hasNewRecords && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('resilia_local_write'));
+          }
         }
-      }
-
-      const now = new Date().toISOString();
-      this.lastSuccessfulSync = now;
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('resilia_last_sync_time', now);
+        if (pullData.pulledAt) {
+          this.lastSuccessfulSync = pullData.pulledAt;
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('resilia_last_sync_time', pullData.pulledAt);
+          }
+        }
       }
 
       this.setStatus('ONLINE');

@@ -25,6 +25,15 @@ export function generateUUID(): string {
   return 'uuid_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 }
 
+let crossTabSyncChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    crossTabSyncChannel = new BroadcastChannel('resilia_sync_channel');
+  } catch (e) {
+    // fallback if unsupported
+  }
+}
+
 export class EventQueueService {
   /**
    * Records a local-first write to an entity store AND records an idempotent sync event
@@ -64,9 +73,14 @@ export class EventQueueService {
     // 2. Put event into durable pending events queue
     await localDB.put(STORES.SYNC_EVENTS, event);
 
-    // 3. Emit change notification for reactive UI
+    // 3. Emit change notification for reactive UI (same window & other tabs)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('resilia_local_write', { detail: { event, entity } }));
+      if (crossTabSyncChannel) {
+        try {
+          crossTabSyncChannel.postMessage({ type: 'RESILIA_LOCAL_WRITE', event, entity });
+        } catch {}
+      }
     }
 
     return { entity, event };
@@ -99,6 +113,11 @@ export class EventQueueService {
     await localDB.put(STORES.SYNC_EVENTS, event);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('resilia_local_write', { detail: { event, entity } }));
+      if (crossTabSyncChannel) {
+        try {
+          crossTabSyncChannel.postMessage({ type: 'RESILIA_LOCAL_WRITE', event, entity });
+        } catch {}
+      }
     }
     return event;
   }

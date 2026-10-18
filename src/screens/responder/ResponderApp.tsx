@@ -23,7 +23,7 @@ import {
 } from '../../types';
 import { useAuth } from '../../services/auth/authContext';
 import { syncClient } from '../../services/offline/syncClient';
-import { getActiveResponderMission } from './responderUtils';
+import { getActiveResponderMission, isMissionAssignedToResponder } from './responderUtils';
 import { ResponderHome } from './ResponderHome';
 import { ResponderMissions } from './ResponderMissions';
 import { ResponderMap } from './ResponderMap';
@@ -91,8 +91,54 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
+  // Combine official missions with any direct incident dispatches assigned to this responder
+  const incidentMissions: Mission[] = (incidents || [])
+    .filter(
+      (inc) =>
+        isMissionAssignedToResponder(
+          { assignedResponderId: inc.assignedResponderId, assignedResponderName: inc.assignedResponderName },
+          currentUser.id,
+          currentUser.name
+        ) &&
+        inc.responderStatus !== 'RESOLVED' &&
+        inc.status !== 'RESOLVED' &&
+        !missions.some((m) => m.assistanceRequestId === inc.id || m.evidenceRecordIds?.includes(inc.id))
+    )
+    .map((inc) => ({
+      id: 'mis_inc_' + inc.id.replace(/[^a-zA-Z0-9]/g, '_'),
+      title: `Incident Response: ${inc.title}`,
+      assistanceRequestId: inc.id,
+      priority: inc.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+      rationale: `Coordinator dispatched ${inc.assignedResponderName || 'Officer Juan dela Cruz'} to active hazard: ${inc.title}. Location: ${inc.locationName}.`,
+      pickupLocation: inc.locationName,
+      destinationLocation: inc.locationName,
+      lat: inc.lat,
+      lng: inc.lng,
+      requestedAssistance: inc.description,
+      vulnerabilitySummary: `Field Incident ${inc.type} (${inc.severity}). Status: ${inc.status}`,
+      assignedResponderId: inc.assignedResponderId || 'user_responder_juan',
+      assignedResponderName: inc.assignedResponderName || 'Officer Juan dela Cruz',
+      assignedVehicleType: 'Rescue Response Vehicle 161',
+      status: inc.responderStatus === 'EN_ROUTE' || inc.responderStatus === 'ON_SCENE' ? 'IN_PROGRESS' : 'ASSIGNED',
+      statusHistory: [
+        {
+          status: 'ASSIGNED',
+          actorId: 'coordinator',
+          actorName: 'Coordinator',
+          timestamp: inc.assignedAt || new Date().toISOString(),
+          note: inc.responderNotes || 'Dispatched by Coordinator',
+        },
+      ],
+      evidenceRecordIds: [inc.id],
+      requiresHumanApproval: false,
+      createdAt: inc.assignedAt || new Date().toISOString(),
+      updatedAt: inc.assignedAt || new Date().toISOString(),
+    }));
+
+  const effectiveMissions = [...missions, ...incidentMissions];
+
   // Active mission for current responder
-  const activeMission = getActiveResponderMission(missions, currentUser.id, currentUser.name);
+  const activeMission = getActiveResponderMission(effectiveMissions, currentUser.id, currentUser.name);
 
   // Navigation handlers
   const handleOpenMapWithMission = (mission?: Mission) => {
@@ -106,10 +152,8 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
       id: 'MISSIONS',
       label: 'My Missions',
       icon: Truck,
-      badge: missions.filter(
-        (m) =>
-          (m.assignedResponderId === currentUser.id || m.assignedResponderName?.includes(currentUser.name)) &&
-          m.status !== 'COMPLETED'
+      badge: effectiveMissions.filter(
+        (m) => isMissionAssignedToResponder(m, currentUser.id, currentUser.name) && m.status !== 'COMPLETED'
       ).length,
     },
     { id: 'MAP', label: 'Map', icon: Compass },
@@ -292,7 +336,7 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
               shelters={shelters}
               incidents={incidents}
               assistanceRequests={assistanceRequests}
-              missions={missions}
+              missions={effectiveMissions}
               resources={resources}
               pendingSyncCount={pendingSyncCount}
               onNavigateToTab={(tab) => setActiveTab(tab)}
@@ -307,7 +351,7 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
 
           {activeTab === 'MISSIONS' && (
             <ResponderMissions
-              missions={missions}
+              missions={effectiveMissions}
               incidents={incidents}
               assistanceRequests={assistanceRequests}
               shelters={shelters}
@@ -318,7 +362,7 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
 
           {activeTab === 'MAP' && (
             <ResponderMap
-              missions={missions}
+              missions={effectiveMissions}
               incidents={incidents}
               resources={resources}
               shelters={shelters}
@@ -332,7 +376,7 @@ export const ResponderApp: React.FC<ResponderAppProps> = ({
 
           {activeTab === 'REPORTS' && (
             <ResponderFieldReports
-              missions={missions}
+              missions={effectiveMissions}
               incidents={incidents}
               activeMission={activeMission}
               onReportSubmitted={onDataChanged}
